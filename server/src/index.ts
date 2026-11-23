@@ -17,6 +17,11 @@ import { registerScene3dTools } from "./tools/scene3d.js";
 import { registerCameraTools } from "./tools/camera.js";
 import { registerLightingTools } from "./tools/lighting.js";
 import { registerSceneTools } from "./tools/scenes.js";
+import { registerLookTools } from "./tools/looks.js";
+import { registerParticleTools } from "./tools/particles.js";
+import { registerBackgroundTools } from "./tools/backgrounds.js";
+import { registerDistortTools } from "./tools/distort.js";
+import { registerRigTools } from "./tools/rigs.js";
 
 async function main(): Promise<void> {
     console.error("[ae-bridge] Starting server...");
@@ -43,6 +48,11 @@ async function main(): Promise<void> {
     registerCameraTools(server);
     registerLightingTools(server);
     registerSceneTools(server);
+    registerLookTools(server);
+    registerParticleTools(server);
+    registerBackgroundTools(server);
+    registerDistortTools(server);
+    registerRigTools(server);
 
     const transport = new StdioServerTransport();
     await server.connect(transport);
