@@ -13,6 +13,10 @@ import { registerTransitionTools } from "./tools/transitions.js";
 import { registerTimeTools } from "./tools/time.js";
 import { registerAudioTools } from "./tools/audio.js";
 import { registerColorTools } from "./tools/color.js";
+import { registerScene3dTools } from "./tools/scene3d.js";
+import { registerCameraTools } from "./tools/camera.js";
+import { registerLightingTools } from "./tools/lighting.js";
+import { registerSceneTools } from "./tools/scenes.js";
 
 async function main(): Promise<void> {
     console.error("[ae-bridge] Starting server...");
@@ -35,6 +39,10 @@ async function main(): Promise<void> {
     registerTimeTools(server);
     registerAudioTools(server);
     registerColorTools(server);
+    registerScene3dTools(server);
+    registerCameraTools(server);
+    registerLightingTools(server);
+    registerSceneTools(server);
 
     const transport = new StdioServerTransport();
     await server.connect(transport);
