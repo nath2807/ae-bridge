@@ -251,9 +251,72 @@
         return current;
     }
 
+    function cleanPath(p) {
+        if (!p) return "";
+        return String(p).replace(/\\/g, "/");
+    }
+
+    function findItem(ref) {
+        if (!app.project) {
+            throw new Error("No active After Effects project found.");
+        }
+        if (ref === null || ref === undefined) {
+            throw new Error("Item reference is required.");
+        }
+        var targetId = null;
+        var targetName = null;
+        if (typeof ref === "number") {
+            targetId = ref;
+        } else if (typeof ref === "string") {
+            targetName = ref;
+        } else if (typeof ref === "object") {
+            if (ref.itemId !== undefined && ref.itemId !== null) targetId = Number(ref.itemId);
+            else if (ref.id !== undefined && ref.id !== null) targetId = Number(ref.id);
+            else if (ref.itemName !== undefined && ref.itemName !== null) targetName = String(ref.itemName);
+            else if (ref.name !== undefined && ref.name !== null) targetName = String(ref.name);
+        }
+
+        if (targetId !== null) {
+            for (var i = 1; i <= app.project.numItems; i++) {
+                var it = app.project.items[i];
+                if (it.id === targetId) return it;
+            }
+            throw new Error("Project item with ID " + targetId + " not found.");
+        }
+        if (targetName !== null) {
+            for (var j = 1; j <= app.project.numItems; j++) {
+                var it2 = app.project.items[j];
+                if (it2.name === targetName) return it2;
+            }
+            throw new Error("Project item named '" + targetName + "' not found.");
+        }
+        throw new Error("Invalid item reference: must provide itemId or itemName.");
+    }
+
+    function findFolder(folderName, createIfMissing) {
+        if (!app.project) {
+            throw new Error("No active After Effects project found.");
+        }
+        if (!folderName) return app.project.rootFolder;
+        var fName = String(folderName);
+        for (var i = 1; i <= app.project.numItems; i++) {
+            var it = app.project.items[i];
+            if (it instanceof FolderItem && it.name === fName) {
+                return it;
+            }
+        }
+        if (createIfMissing !== false) {
+            return app.project.items.addFolder(fName);
+        }
+        return null;
+    }
+
     // Export globally for ExtendScript evaluation
     $.global.findComp = findComp;
     $.global.findLayer = findLayer;
+    $.global.findItem = findItem;
+    $.global.findFolder = findFolder;
+    $.global.cleanPath = cleanPath;
     $.global.toColor = toColor;
     $.global.layerSummary = layerSummary;
     $.global.withUndo = withUndo;
@@ -263,6 +326,9 @@
     if ($.global.aeBridge) {
         $.global.aeBridge.findComp = findComp;
         $.global.aeBridge.findLayer = findLayer;
+        $.global.aeBridge.findItem = findItem;
+        $.global.aeBridge.findFolder = findFolder;
+        $.global.aeBridge.cleanPath = cleanPath;
         $.global.aeBridge.toColor = toColor;
         $.global.aeBridge.layerSummary = layerSummary;
         $.global.aeBridge.withUndo = withUndo;
