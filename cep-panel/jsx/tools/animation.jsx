@@ -402,12 +402,7 @@
             }
 
             if (preset === "spinin") {
-                var rotProp = null;
-                try {
-                    rotProp = layer.threeDLayer ? transform.property("ADBE Rotate Z") : transform.property("ADBE Rotation");
-                } catch (e) {
-                    rotProp = transform.property("ADBE Rotation");
-                }
+                var rotProp = transform.property("ADBE Rotate Z") || transform.property("Rotation");
                 var turns = opts.rotations !== undefined ? Number(opts.rotations) : 1;
                 var startRot = -(turns * 360);
                 setSnappyKeyframes(rotProp, t0, startRot, t1, 0, 85, 80);
@@ -465,19 +460,16 @@
                 animOpacity.setValue(0);
 
                 var selectors = animator.property("ADBE Text Selectors");
-                var rangeSel = selectors.property(1); // default range selector
-                if (!rangeSel) {
-                    rangeSel = selectors.addProperty("ADBE Text Selector");
-                }
+                var rangeSel = (selectors.numProperties > 0) ? selectors.property(1) : selectors.addProperty("ADBE Text Selector");
 
-                var endProp = rangeSel.property("ADBE Text Percent End");
-                endProp.setValueAtTime(t0, 0);
-                endProp.setValueAtTime(t1, 100);
+                var startProp = rangeSel.property("ADBE Text Percent Start");
+                startProp.setValueAtTime(t0, 0);
+                startProp.setValueAtTime(t1, 100);
 
-                var kEnd1 = endProp.nearestKeyIndex(t0);
-                var kEnd2 = endProp.nearestKeyIndex(t1);
-                applyKeyframeEasing(endProp, kEnd1, { ease: "linear" }, 1);
-                applyKeyframeEasing(endProp, kEnd2, { ease: "linear" }, 1);
+                var kStart1 = startProp.nearestKeyIndex(t0);
+                var kStart2 = startProp.nearestKeyIndex(t1);
+                applyKeyframeEasing(startProp, kStart1, { ease: "linear" }, 1);
+                applyKeyframeEasing(startProp, kStart2, { ease: "linear" }, 1);
 
                 return { preset: "typewriter", startTime: t0, duration: dur, layer: layer.name };
             }
