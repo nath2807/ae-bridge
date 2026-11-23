@@ -34,14 +34,14 @@ import { registerStoryboardTools } from "./director/storyboard.js";
 import { registerRecipeTools } from "./director/recipes.js";
 import { registerPrompts } from "./prompts.js";
 
-async function main(): Promise<void> {
-    console.error("[ae-bridge] Starting server...");
+export async function runServer(): Promise<void> {
+    console.error("[ae-bridge] Starting server v1.0.0...");
 
     await cleanOldPreviews();
 
     const server = new McpServer({
         name: "ae-bridge",
-        version: "0.1.0"
+        version: "1.0.0"
     });
 
     await startBridge();
@@ -84,7 +84,10 @@ async function main(): Promise<void> {
     console.error("[ae-bridge] Server ready and connected via stdio transport.");
 }
 
-main().catch((err) => {
-    console.error("[ae-bridge] Fatal startup error:", err);
-    process.exit(1);
-});
+// Auto-run if executed directly as entrypoint
+if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/"))) {
+    runServer().catch((err) => {
+        console.error("[ae-bridge] Fatal startup error:", err);
+        process.exit(1);
+    });
+}

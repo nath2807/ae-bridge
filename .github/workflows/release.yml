@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies & Build
+        run: |
+          npm --prefix server ci
+          npm --prefix server run build
+          npm --prefix server test
+          npm --prefix server run docs
+
+      - name: Package Release Archive
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          mkdir -p release-pkg/cep-panel
+          cp -r cep-panel/CSXS cep-panel/jsx cep-panel/index.html cep-panel/main.js release-pkg/cep-panel/
+          mkdir -p release-pkg/server/dist
+          cp -r server/dist release-pkg/server/
+          cp server/package.json release-pkg/server/
+          cp -r recipes release-pkg/
+          cp README.md LICENSE release-pkg/ 2>/dev/null || true
+          
+          cd release-pkg
+          zip -r "../ae-bridge-${VERSION}.zip" .
+          cd ..
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ae-bridge-*.zip
+          draft: false
+          prerelease: false
+          generate_release_notes: true

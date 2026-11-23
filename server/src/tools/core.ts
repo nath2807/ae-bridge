@@ -56,6 +56,17 @@ export function registerCoreTools(server: McpServer): void {
       code: z.string().describe("ExtendScript code to execute in After Effects")
     },
     async ({ code }) => {
+      if (process.env.AE_BRIDGE_ALLOW_RAW_SCRIPTS === "false") {
+        return {
+          content: [
+            {
+              type: "text",
+              text: "ae_execute_extendscript is disabled by configuration (AE_BRIDGE_ALLOW_RAW_SCRIPTS=false). Use dedicated ae_* tools instead."
+            }
+          ],
+          isError: true
+        };
+      }
       try {
         const result = await callAE("executeScript", { code });
         return {

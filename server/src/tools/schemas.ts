@@ -17,7 +17,7 @@ export const layerRefSchema = z
 export const colorSchema = z
   .union([
     z.array(z.number()).min(3).max(4).describe("RGB or RGBA color array [r, g, b] as 0-1 floats or 0-255 ints"),
-    z.string().describe("Hex color string (e.g. '#FF0000' or '#FFF')")
+    z.string().regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/, "Invalid hex color format (e.g. #RGB or #RRGGBB)").describe("Hex color string (e.g. '#FF0000' or '#FFF')")
   ])
   .describe("Color as [r, g, b] array or hex string");
 

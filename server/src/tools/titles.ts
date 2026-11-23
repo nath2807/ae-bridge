@@ -11,7 +11,7 @@ export function registerTitleTools(server: McpServer): void {
     {
       compName: z.string().optional().describe("Composition name (default: title + ' — Title Card')"),
       title: z.string().describe("Main title text to display (e.g. 'THE LAST SIGNAL')"),
-      subtitle: z.string().optional().describe("Subtitle text to display below the title (e.g. 'A film by Yaswanth Nath')"),
+      subtitle: z.string().optional().describe("Subtitle text to display below the title (e.g. 'A film by Alex Rivera')"),
       accentColor: colorSchema.optional().describe("Accent element color (hex or [r,g,b] array, default gold '#D4AF37')"),
       titleColor: colorSchema.optional().describe("Main title text color (default platinum white '#F5F5F7')"),
       subtitleColor: colorSchema.optional().describe("Subtitle text color (default matches accentColor)"),
@@ -41,7 +41,7 @@ export function registerTitleTools(server: McpServer): void {
     {
       compName: z.string().optional().describe("Composition name (default: name + ' — Lower Third')"),
       compRef: compRefSchema.optional().describe("Optional reference to an existing composition to add the lower third into"),
-      name: z.string().describe("Primary name text (e.g. 'Yaswanth Nath')"),
+      name: z.string().describe("Primary name text (e.g. 'Alex Rivera')"),
       title: z.string().optional().describe("Secondary role/title text (e.g. 'Motion Designer')"),
       style: z.enum(["bar", "minimal", "boxed", "modern", "line"]).optional().default("bar").describe("Visual style preset of the lower third"),
       accentColor: colorSchema.optional().describe("Accent bar color (default gold '#D4AF37')"),

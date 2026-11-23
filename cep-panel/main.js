@@ -4,6 +4,7 @@
     var logEl = document.getElementById("log");
     var ws = null;
     var commandLogs = [];
+    var isAuthenticated = false;
 
     function addLog(text) {
         var time = new Date().toLocaleTimeString();
@@ -22,15 +23,27 @@
         }
     }
 
-    function updateStatus(connected) {
+    function updateStatus(statusText, color) {
         if (!statusEl) return;
-        if (connected) {
-            statusEl.textContent = "Connected";
-            statusEl.style.color = "#4caf50";
-        } else {
-            statusEl.textContent = "Disconnected — retrying";
-            statusEl.style.color = "#f44336";
+        statusEl.textContent = statusText;
+        statusEl.style.color = color || "#ffffff";
+    }
+
+    function getAuthToken() {
+        try {
+            if (typeof require === "function") {
+                var fs = require("fs");
+                var os = require("os");
+                var path = require("path");
+                var tokenPath = path.join(os.homedir(), ".ae-bridge", "token");
+                if (fs.existsSync(tokenPath)) {
+                    return fs.readFileSync(tokenPath, "utf-8").trim();
+                }
+            }
+        } catch (e) {
+            console.error("[ae-bridge] Error reading auth token:", e);
         }
+        return null;
     }
 
     // Load ExtendScript dispatcher
@@ -41,32 +54,71 @@
     });
 
     function connect() {
-        updateStatus(false);
+        isAuthenticated = false;
+        updateStatus("Connecting...", "#ff9800");
+
         try {
             ws = new WebSocket("ws://127.0.0.1:8765");
         } catch (e) {
+            updateStatus("Disconnected — retrying", "#f44336");
             setTimeout(connect, 3000);
             return;
         }
 
         ws.onopen = function () {
-            updateStatus(true);
-            addLog("WebSocket connected to MCP server");
+            var token = getAuthToken();
+            if (!token) {
+                updateStatus("Auth failed: token missing", "#f44336");
+                addLog("Auth token missing at ~/.ae-bridge/token");
+                try { ws.close(); } catch (e) {}
+                setTimeout(connect, 5000);
+                return;
+            }
+
+            updateStatus("Authenticating...", "#ff9800");
+            addLog("Sending auth token to server");
+            try {
+                ws.send(JSON.stringify({ type: "auth", token: token }));
+            } catch (eSend) {
+                updateStatus("Auth failed: send error", "#f44336");
+            }
         };
 
         ws.onclose = function () {
-            updateStatus(false);
+            if (!isAuthenticated) {
+                updateStatus("Disconnected / Auth failed", "#f44336");
+            } else {
+                updateStatus("Disconnected — retrying", "#f44336");
+            }
+            isAuthenticated = false;
             addLog("WebSocket closed. Reconnecting in 3s...");
             setTimeout(connect, 3000);
         };
 
         ws.onerror = function () {
-            updateStatus(false);
+            updateStatus("Connection error", "#f44336");
         };
 
         ws.onmessage = function (event) {
             try {
                 var data = JSON.parse(event.data);
+
+                // Handle authentication handshake response
+                if (data.type === "auth_ok") {
+                    isAuthenticated = true;
+                    updateStatus("Connected", "#4caf50");
+                    addLog("✓ Authenticated with server");
+                    return;
+                }
+
+                if (data.type === "auth_failed") {
+                    isAuthenticated = false;
+                    updateStatus("Auth failed", "#f44336");
+                    addLog("✗ Authentication failed: " + (data.error || "Invalid token"));
+                    try { ws.close(); } catch (e) {}
+                    return;
+                }
+
                 var id = data.id;
                 var method = data.method;
                 var params = data.params || {};
@@ -99,19 +151,19 @@
                                 error: parsed.error
                             }));
                         }
-                    } catch (err) {
-                        addLog("Parse error on: " + method);
+                    } catch (e) {
+                        addLog("JSON error: " + e.message);
                         if (ws && ws.readyState === WebSocket.OPEN) {
                             ws.send(JSON.stringify({
                                 id: id,
                                 ok: false,
-                                error: "Failed to parse ExtendScript response: " + err.message
+                                error: "Failed to parse ExtendScript response"
                             }));
                         }
                     }
                 });
             } catch (err) {
-                addLog("Invalid message: " + err.message);
+                addLog("Parse error: " + err.message);
             }
         };
     }
