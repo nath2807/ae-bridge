@@ -1,0 +1,69 @@
+{
+  "name": "youtubeIntro",
+  "description": "High-impact 5-second YouTube channel opener featuring dynamic title reveal, particle burst, and branded accent sweep.",
+  "duration": 5,
+  "inputs": {
+    "channelName": {
+      "type": "string",
+      "default": "CREATOR HUB",
+      "description": "Main channel or show name"
+    },
+    "tagline": {
+      "type": "string",
+      "default": "NEW VIDEOS EVERY WEEK",
+      "description": "Channel slogan or posting schedule"
+    },
+    "style": {
+      "type": "string",
+      "default": "tech",
+      "description": "Visual theme (tech, bold, minimal)"
+    }
+  },
+  "storyboard": {
+    "title": "{{channelName}} — YouTube Intro",
+    "width": 1920,
+    "height": 1080,
+    "frameRate": 30,
+    "brand": true,
+    "scenes": [
+      {
+        "type": "background",
+        "duration": 5,
+        "content": {
+          "style": "aurora",
+          "preset": "digital"
+        },
+        "effects": [
+          {
+            "kind": "particles",
+            "name": "sparkles",
+            "options": { "count": 60, "speed": 1.2 }
+          }
+        ]
+      },
+      {
+        "type": "title",
+        "duration": 5,
+        "transitionIn": { "type": "zoom", "duration": 0.5 },
+        "content": {
+          "text": "{{channelName}}",
+          "subtitle": "{{tagline}}",
+          "preset": "blurReveal",
+          "style": "{{style}}"
+        },
+        "effects": [
+          {
+            "kind": "lightEffect",
+            "name": "lightSweep",
+            "options": { "direction": 45, "intensity": 1.5 }
+          },
+          {
+            "kind": "look",
+            "name": "vignette",
+            "options": { "amount": 0.6 }
+          }
+        ]
+      }
+    ]
+  }
+}

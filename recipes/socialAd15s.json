@@ -1,0 +1,102 @@
+{
+  "name": "socialAd15s",
+  "description": "Vertical 9:16 format (1080x1920) 15-second social media advertisement optimized for TikTok, Instagram Reels, and YouTube Shorts with hook, problem, solution, and CTA.",
+  "duration": 15,
+  "inputs": {
+    "hookText": {
+      "type": "string",
+      "default": "STILL DOING THIS MANUALLY?",
+      "description": "Opening 3-second hook text"
+    },
+    "problemText": {
+      "type": "string",
+      "default": "You're losing 10 hours every week.",
+      "description": "Problem / pain point description"
+    },
+    "solutionText": {
+      "type": "string",
+      "default": "AUTOMATE WITH AI BRIDGE",
+      "description": "Brand solution statement"
+    },
+    "ctaText": {
+      "type": "string",
+      "default": "LINK IN BIO • TRY FREE",
+      "description": "Call-to-action button / badge text"
+    }
+  },
+  "storyboard": {
+    "title": "Social Ad 9:16 — {{hookText}}",
+    "width": 1080,
+    "height": 1920,
+    "frameRate": 30,
+    "look": "vibrant",
+    "brand": true,
+    "scenes": [
+      {
+        "type": "title",
+        "duration": 3.5,
+        "transitionIn": { "type": "slideDown", "duration": 0.4 },
+        "content": {
+          "text": "{{hookText}}",
+          "preset": "popImpact",
+          "style": "bold"
+        },
+        "effects": [
+          {
+            "kind": "lightEffect",
+            "name": "strobeFlash",
+            "options": { "speed": 1 }
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "duration": 4.0,
+        "transitionIn": { "type": "slideLeft", "duration": 0.35 },
+        "content": {
+          "text": "{{problemText}}",
+          "preset": "highlightWord",
+          "style": "minimal"
+        }
+      },
+      {
+        "type": "title",
+        "duration": 4.5,
+        "transitionIn": { "type": "zoom", "duration": 0.4 },
+        "content": {
+          "text": "{{solutionText}}",
+          "subtitle": "10X FASTER WORKFLOWS",
+          "preset": "blurReveal",
+          "style": "bold"
+        },
+        "effects": [
+          {
+            "kind": "particles",
+            "name": "confetti",
+            "options": { "count": 75 }
+          }
+        ]
+      },
+      {
+        "type": "endCard",
+        "duration": 3.0,
+        "transitionIn": { "type": "fade", "duration": 0.3 },
+        "content": {
+          "text": "START TODAY",
+          "subtitle": "{{ctaText}}",
+          "preset": "fadeScale"
+        },
+        "effects": [
+          {
+            "kind": "look",
+            "name": "vignette",
+            "options": { "amount": 0.5 }
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      { "aspect": "9:16", "preset": "mp4High" }
+    ]
+  }
+}

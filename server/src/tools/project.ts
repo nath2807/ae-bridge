@@ -140,4 +140,59 @@ export function registerProjectTools(server: McpServer): void {
       }
     }
   );
+
+  // 8. ae_checkpoint
+  server.tool(
+    "ae_checkpoint",
+    "Create a timestamped project backup copy in <project>_checkpoints/<timestamp>_<label>.aep before making destructive changes. The active project remains the original file.",
+    {
+      label: z.string().describe("Descriptive label for this milestone (e.g. 'before_reframe', 'pre_color_grade', 'v1_client')")
+    },
+    async (params) => {
+      try {
+        const defaultProjectsDir = getDefaultProjectsDir();
+        const fallbackPath = path.join(defaultProjectsDir, `Project_${Date.now()}.aep`).replace(/\\/g, "/");
+        const result = await callAE("ae_checkpoint", {
+          label: params.label,
+          defaultPath: fallbackPath
+        });
+        return toolSuccess(result);
+      } catch (err) {
+        return toolError(err);
+      }
+    }
+  );
+
+  // 9. ae_list_checkpoints
+  server.tool(
+    "ae_list_checkpoints",
+    "List all available project checkpoint backups in the project's checkpoints directory sorted newest first.",
+    {},
+    async () => {
+      try {
+        const result = await callAE("ae_list_checkpoints", {});
+        return toolSuccess(result);
+      } catch (err) {
+        return toolError(err);
+      }
+    }
+  );
+
+  // 10. ae_restore_checkpoint
+  server.tool(
+    "ae_restore_checkpoint",
+    "Open and restore a previously saved project checkpoint file (.aep). Warns if the current project has unsaved modifications unless force=true.",
+    {
+      file: z.string().describe("Checkpoint file name (e.g. '20261123_212000_v1.aep') or full path"),
+      force: z.boolean().optional().default(false).describe("Set true to discard unsaved changes in current project")
+    },
+    async (params) => {
+      try {
+        const result = await callAE("ae_restore_checkpoint", params);
+        return toolSuccess(result);
+      } catch (err) {
+        return toolError(err);
+      }
+    }
+  );
 }

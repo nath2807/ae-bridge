@@ -28,6 +28,11 @@ import { registerProjectTools } from "./tools/project.js";
 import { registerRenderTools } from "./tools/render.js";
 import { registerFormatTools } from "./tools/formats.js";
 import { registerTemplateTools } from "./tools/templates.js";
+import { registerAnalysisTools } from "./tools/analysis.js";
+import { registerBrandTools } from "./director/brand.js";
+import { registerStoryboardTools } from "./director/storyboard.js";
+import { registerRecipeTools } from "./director/recipes.js";
+import { registerPrompts } from "./prompts.js";
 
 async function main(): Promise<void> {
     console.error("[ae-bridge] Starting server...");
@@ -67,6 +72,11 @@ async function main(): Promise<void> {
     registerRenderTools(server);
     registerFormatTools(server);
     registerTemplateTools(server);
+    registerAnalysisTools(server);
+    registerBrandTools(server);
+    registerStoryboardTools(server);
+    registerRecipeTools(server);
+    registerPrompts(server);
 
     const transport = new StdioServerTransport();
     await server.connect(transport);

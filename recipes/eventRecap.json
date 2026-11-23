@@ -1,0 +1,104 @@
+{
+  "name": "eventRecap",
+  "description": "Dynamic 20-second event montage video blending ambient opener, highlight cards with lower-third speaker tags, energetic transitions, and closing date/link outro.",
+  "duration": 20,
+  "inputs": {
+    "eventName": {
+      "type": "string",
+      "default": "GLOBAL TECH SUMMIT 2026",
+      "description": "Event title"
+    },
+    "locationDate": {
+      "type": "string",
+      "default": "SAN FRANCISCO • NOV 2026",
+      "description": "Event location and date"
+    },
+    "highlight1": {
+      "type": "string",
+      "default": "5,000+ ATTENDEES",
+      "description": "First milestone or metric stat"
+    },
+    "highlight2": {
+      "type": "string",
+      "default": "120 KEYNOTE SESSIONS",
+      "description": "Second milestone or metric stat"
+    },
+    "outroLink": {
+      "type": "string",
+      "default": "REWATCH SESSIONS AT SUMMIT2026.IO",
+      "description": "Final link or replay CTA"
+    }
+  },
+  "storyboard": {
+    "title": "{{eventName}} — Recap Highlights",
+    "width": 1920,
+    "height": 1080,
+    "frameRate": 30,
+    "look": "vibrant",
+    "brand": true,
+    "scenes": [
+      {
+        "type": "title",
+        "duration": 4.0,
+        "transitionIn": { "type": "fade", "duration": 0.5 },
+        "content": {
+          "text": "{{eventName}}",
+          "subtitle": "{{locationDate}}",
+          "preset": "blurReveal",
+          "style": "bold"
+        },
+        "effects": [
+          {
+            "kind": "look",
+            "name": "cinemaBars",
+            "options": { "height": 70 }
+          }
+        ]
+      },
+      {
+        "type": "background",
+        "duration": 5.0,
+        "transitionIn": { "type": "slideLeft", "duration": 0.5 },
+        "content": {
+          "style": "gradientWave",
+          "preset": "energetic"
+        },
+        "effects": [
+          {
+            "kind": "particles",
+            "name": "sparkles",
+            "options": { "count": 50 }
+          }
+        ]
+      },
+      {
+        "type": "lowerThird",
+        "duration": 5.5,
+        "transitionIn": { "type": "wipe", "duration": 0.4 },
+        "content": {
+          "text": "{{highlight1}}",
+          "subtitle": "{{highlight2}}",
+          "preset": "cleanBox",
+          "style": "tech"
+        }
+      },
+      {
+        "type": "endCard",
+        "duration": 5.5,
+        "transitionIn": { "type": "fade", "duration": 0.6 },
+        "content": {
+          "text": "THANK YOU FOR JOINING US",
+          "subtitle": "{{outroLink}}",
+          "preset": "fadeScale"
+        },
+        "effects": [
+          {
+            "kind": "look",
+            "name": "vignette",
+            "options": { "amount": 0.6 }
+          }
+        ]
+      }
+    ]
+  }
+}

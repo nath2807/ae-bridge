@@ -1,0 +1,66 @@
+{
+  "name": "tutorialIntro",
+  "description": "Polished 8-second tutorial or course opener featuring episode badge, lesson title, presenter lower-third, and clean brand accent framing.",
+  "duration": 8,
+  "inputs": {
+    "seriesName": {
+      "type": "string",
+      "default": "AFTER EFFECTS MASTERCLASS",
+      "description": "Course or series title"
+    },
+    "episode": {
+      "type": "string",
+      "default": "EPISODE 09",
+      "description": "Episode or chapter badge"
+    },
+    "topic": {
+      "type": "string",
+      "default": "AUTOMATED MOTION GRAPHICS",
+      "description": "Specific lesson subject"
+    },
+    "instructor": {
+      "type": "string",
+      "default": "ALEX RIVERA • LEAD DESIGNER",
+      "description": "Presenter name and title"
+    }
+  },
+  "storyboard": {
+    "title": "{{seriesName}} — {{episode}}",
+    "width": 1920,
+    "height": 1080,
+    "frameRate": 30,
+    "look": "cleanStudio",
+    "brand": true,
+    "scenes": [
+      {
+        "type": "title",
+        "duration": 4.5,
+        "transitionIn": { "type": "slideDown", "duration": 0.4 },
+        "content": {
+          "text": "{{episode}}: {{topic}}",
+          "subtitle": "{{seriesName}}",
+          "preset": "cleanBox",
+          "style": "tech"
+        },
+        "effects": [
+          {
+            "kind": "lightEffect",
+            "name": "lightSweep",
+            "options": { "speed": 0.8 }
+          }
+        ]
+      },
+      {
+        "type": "lowerThird",
+        "duration": 3.5,
+        "transitionIn": { "type": "slideLeft", "duration": 0.4 },
+        "content": {
+          "text": "{{instructor}}",
+          "subtitle": "INSTRUCTOR",
+          "preset": "minimalLine",
+          "style": "minimal"
+        }
+      }
+    ]
+  }
+}

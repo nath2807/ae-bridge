@@ -1,0 +1,107 @@
+{
+  "name": "cinematicTrailer",
+  "description": "Dramatic 25-second cinematic trailer featuring widescreen letterboxing, slow suspenseful reveals, escalating ambient particles, and a resounding title climax.",
+  "duration": 25,
+  "inputs": {
+    "storyline": {
+      "type": "string",
+      "default": "IN A WORLD OF SHADOWS",
+      "description": "Opening suspense narrative card"
+    },
+    "turningPoint": {
+      "type": "string",
+      "default": "ONE SIGNAL CHANGES EVERYTHING",
+      "description": "Midpoint teaser twist"
+    },
+    "title": {
+      "type": "string",
+      "default": "CHRONO ZERO",
+      "description": "Main film or project title"
+    },
+    "releaseDate": {
+      "type": "string",
+      "default": "STREAMING WORLDWIDE DECEMBER 2026",
+      "description": "Release date or streaming platform"
+    }
+  },
+  "storyboard": {
+    "title": "Cinematic Teaser — {{title}}",
+    "width": 1920,
+    "height": 1080,
+    "frameRate": 24,
+    "look": "bleachBypass",
+    "brand": false,
+    "scenes": [
+      {
+        "type": "title",
+        "duration": 6.0,
+        "transitionIn": { "type": "fade", "duration": 1.2 },
+        "content": {
+          "text": "{{storyline}}",
+          "preset": "typewriter",
+          "style": "minimal"
+        },
+        "effects": [
+          {
+            "kind": "look",
+            "name": "filmGrain",
+            "options": { "intensity": 0.35 }
+          },
+          {
+            "kind": "look",
+            "name": "cinemaBars",
+            "options": { "height": 120 }
+          }
+        ]
+      },
+      {
+        "type": "3dScene",
+        "duration": 7.0,
+        "transitionIn": { "type": "dissolve", "duration": 1.0 },
+        "content": {
+          "style": "deepSpaceConstellation",
+          "camera": { "move": "slowPan", "speed": 0.5 }
+        },
+        "effects": [
+          {
+            "kind": "particles",
+            "name": "goldenEmbers",
+            "options": { "rate": 40, "gravity": -10 }
+          }
+        ]
+      },
+      {
+        "type": "title",
+        "duration": 5.0,
+        "transitionIn": { "type": "fade", "duration": 0.8 },
+        "content": {
+          "text": "{{turningPoint}}",
+          "preset": "blurReveal",
+          "style": "minimal"
+        }
+      },
+      {
+        "type": "3dText",
+        "duration": 7.0,
+        "transitionIn": { "type": "flash", "duration": 0.5 },
+        "content": {
+          "text": "{{title}}",
+          "subtitle": "{{releaseDate}}",
+          "preset": "dramaticRise"
+        },
+        "effects": [
+          {
+            "kind": "lightEffect",
+            "name": "anamorphicFlare",
+            "options": { "brightness": 1.8 }
+          },
+          {
+            "kind": "look",
+            "name": "vignette",
+            "options": { "amount": 0.8 }
+          }
+        ]
+      }
+    ]
+  }
+}

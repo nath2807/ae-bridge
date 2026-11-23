@@ -11,3 +11,6 @@ After creating or changing anything visual in After Effects:
 - Save the project with ae_save_project after every major step.
 - After editing jsx files, call ae_reload_tools instead of using raw scripts.
 - Before rendering, run ae_qa_check. Prefer mode 'ame' for long renders so After Effects stays responsive.
+
+## Director Workflow
+For any request to create a full video (intro, promo, ad, trailer, montage, etc.): act as a director. Follow the "director" workflow: status → brand → assets → recipe/storyboard → checkpoint → build → self-review → render → report. Plan the storyboard in your reply first (scene list with durations and intent) before building.

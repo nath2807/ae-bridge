@@ -1,0 +1,69 @@
+{
+  "name": "logoReveal",
+  "description": "Cinematic 6-second brand identity reveal featuring deep dark environment, 3D extruded emblem, shimmering particles, and an illuminating light sweep.",
+  "duration": 6,
+  "inputs": {
+    "brandName": {
+      "type": "string",
+      "default": "NEXUS",
+      "description": "Brand or company name"
+    },
+    "tagline": {
+      "type": "string",
+      "default": "INNOVATION DEFINED",
+      "description": "Secondary brand tagline"
+    },
+    "logoPath": {
+      "type": "string",
+      "default": "",
+      "description": "Optional file path to logo artwork"
+    }
+  },
+  "storyboard": {
+    "title": "{{brandName}} — Logo Reveal",
+    "width": 1920,
+    "height": 1080,
+    "frameRate": 30,
+    "brand": true,
+    "scenes": [
+      {
+        "type": "3dScene",
+        "duration": 6,
+        "content": {
+          "style": "abstractRings",
+          "camera": { "move": "dollyIn", "distance": 1200 }
+        },
+        "effects": [
+          {
+            "kind": "particles",
+            "name": "goldenEmbers",
+            "options": { "rate": 80, "gravity": -40 }
+          }
+        ]
+      },
+      {
+        "type": "3dText",
+        "duration": 6,
+        "transitionIn": { "type": "fade", "duration": 0.8 },
+        "content": {
+          "text": "{{brandName}}",
+          "subtitle": "{{tagline}}",
+          "preset": "dramaticRise",
+          "path": "{{logoPath}}"
+        },
+        "effects": [
+          {
+            "kind": "lightEffect",
+            "name": "lightSweep",
+            "options": { "speed": 1.0, "width": 80 }
+          },
+          {
+            "kind": "look",
+            "name": "cinemaBars",
+            "options": { "height": 80 }
+          }
+        ]
+      }
+    ]
+  }
+}

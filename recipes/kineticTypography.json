@@ -1,0 +1,87 @@
+{
+  "name": "kineticTypography",
+  "description": "Fast-paced 10-second rhythmic typographic piece displaying timed quotes or lyrics with snappy motion bursts and camera shake.",
+  "duration": 10,
+  "inputs": {
+    "quoteLine1": {
+      "type": "string",
+      "default": "THE FUTURE",
+      "description": "Opening typographic punch"
+    },
+    "quoteLine2": {
+      "type": "string",
+      "default": "BELONGS TO THOSE",
+      "description": "Connecting phrase"
+    },
+    "quoteLine3": {
+      "type": "string",
+      "default": "WHO BUILD IT",
+      "description": "Climactic final emphasis line"
+    },
+    "author": {
+      "type": "string",
+      "default": "INNOVATOR'S MANIFESTO",
+      "description": "Attribution or signature"
+    }
+  },
+  "storyboard": {
+    "title": "Kinetic Typography — {{quoteLine1}}",
+    "width": 1920,
+    "height": 1080,
+    "frameRate": 30,
+    "look": "highContrast",
+    "brand": true,
+    "scenes": [
+      {
+        "type": "quote",
+        "duration": 2.5,
+        "transitionIn": { "type": "pop", "duration": 0.2 },
+        "content": {
+          "text": "{{quoteLine1}}",
+          "preset": "stomp",
+          "style": "bold"
+        },
+        "effects": [
+          {
+            "kind": "rig",
+            "name": "cameraShake",
+            "options": { "intensity": 8, "frequency": 12 }
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "duration": 3.0,
+        "transitionIn": { "type": "slideUp", "duration": 0.3 },
+        "content": {
+          "text": "{{quoteLine2}}",
+          "preset": "kineticWords",
+          "style": "bold"
+        }
+      },
+      {
+        "type": "3dText",
+        "duration": 4.5,
+        "transitionIn": { "type": "zoom", "duration": 0.3 },
+        "content": {
+          "text": "{{quoteLine3}}",
+          "subtitle": "{{author}}",
+          "preset": "dramaticRise",
+          "style": "bold"
+        },
+        "effects": [
+          {
+            "kind": "lightEffect",
+            "name": "lightSweep",
+            "options": { "speed": 1.2 }
+          },
+          {
+            "kind": "look",
+            "name": "filmGrain",
+            "options": { "intensity": 0.2 }
+          }
+        ]
+      }
+    ]
+  }
+}

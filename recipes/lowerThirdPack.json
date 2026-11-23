@@ -1,0 +1,49 @@
+{
+  "name": "lowerThirdPack",
+  "description": "Versatile 6-second broadcast-quality lower third pack with speaker name, professional title/role, and social handle or badge.",
+  "duration": 6,
+  "inputs": {
+    "name": {
+      "type": "string",
+      "default": "SARAH CHEN",
+      "description": "Primary person or subject name"
+    },
+    "role": {
+      "type": "string",
+      "default": "VP OF ARTIFICIAL INTELLIGENCE",
+      "description": "Professional title or company role"
+    },
+    "handle": {
+      "type": "string",
+      "default": "@sarahchen_ai",
+      "description": "Social media handle or website URL"
+    }
+  },
+  "storyboard": {
+    "title": "Lower Third — {{name}}",
+    "width": 1920,
+    "height": 1080,
+    "frameRate": 30,
+    "brand": true,
+    "scenes": [
+      {
+        "type": "lowerThird",
+        "duration": 6.0,
+        "transitionIn": { "type": "slideLeft", "duration": 0.4 },
+        "content": {
+          "text": "{{name}}",
+          "subtitle": "{{role}} | {{handle}}",
+          "preset": "cleanBox",
+          "style": "tech"
+        },
+        "effects": [
+          {
+            "kind": "lightEffect",
+            "name": "lightSweep",
+            "options": { "speed": 1.0, "intensity": 1.2 }
+          }
+        ]
+      }
+    ]
+  }
+}

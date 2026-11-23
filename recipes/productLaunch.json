@@ -1,0 +1,119 @@
+{
+  "name": "productLaunch",
+  "description": "Premium 15-second multi-scene product debut with dramatic teaser opener, 3D hero reveal, animated key feature highlights, and a closing call-to-action.",
+  "duration": 15,
+  "inputs": {
+    "productName": {
+      "type": "string",
+      "default": "HORIZON PRO",
+      "description": "Headline product name"
+    },
+    "category": {
+      "type": "string",
+      "default": "NEXT-GEN WORKSTATION",
+      "description": "Subheading or category label"
+    },
+    "feature1": {
+      "type": "string",
+      "default": "UNREAL PERFORMANCE",
+      "description": "Key selling point 1"
+    },
+    "feature2": {
+      "type": "string",
+      "default": "ALL-DAY BATTERY",
+      "description": "Key selling point 2"
+    },
+    "ctaText": {
+      "type": "string",
+      "default": "ORDER NOW AT NEXUS.COM",
+      "description": "Final call-to-action message"
+    }
+  },
+  "storyboard": {
+    "title": "{{productName}} — Launch Intro",
+    "width": 1920,
+    "height": 1080,
+    "frameRate": 30,
+    "look": "cinematic",
+    "brand": true,
+    "scenes": [
+      {
+        "type": "background",
+        "duration": 3,
+        "content": {
+          "style": "abstractMesh",
+          "preset": "darkMinimal"
+        },
+        "effects": [
+          {
+            "kind": "particles",
+            "name": "smoke",
+            "options": { "density": 0.4 }
+          }
+        ]
+      },
+      {
+        "type": "title",
+        "duration": 3,
+        "transitionIn": { "type": "fade", "duration": 0.5 },
+        "content": {
+          "text": "THE WAIT IS OVER",
+          "subtitle": "{{category}}",
+          "preset": "typewriter",
+          "style": "minimal"
+        }
+      },
+      {
+        "type": "3dText",
+        "duration": 4.5,
+        "transitionIn": { "type": "zoom", "duration": 0.6 },
+        "content": {
+          "text": "{{productName}}",
+          "subtitle": "PRECISION ENGINEERED",
+          "preset": "cinematicGlitch"
+        },
+        "effects": [
+          {
+            "kind": "lightEffect",
+            "name": "anamorphicFlare",
+            "options": { "brightness": 1.2 }
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "duration": 4.5,
+        "transitionIn": { "type": "slideLeft", "duration": 0.5 },
+        "content": {
+          "text": "{{feature1}}",
+          "subtitle": "{{feature2}}",
+          "preset": "blurReveal"
+        },
+        "effects": [
+          {
+            "kind": "look",
+            "name": "filmGrain",
+            "options": { "intensity": 0.25 }
+          }
+        ]
+      },
+      {
+        "type": "endCard",
+        "duration": 3,
+        "transitionIn": { "type": "fade", "duration": 0.4 },
+        "content": {
+          "text": "{{productName}}",
+          "subtitle": "{{ctaText}}",
+          "preset": "fadeScale"
+        },
+        "effects": [
+          {
+            "kind": "look",
+            "name": "vignette",
+            "options": { "amount": 0.7 }
+          }
+        ]
+      }
+    ]
+  }
+}

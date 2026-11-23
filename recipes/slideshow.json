@@ -1,0 +1,92 @@
+{
+  "name": "slideshow",
+  "description": "Elegant 20-second media showcase with soft cross-dissolves, gentle camera pans, warm filmic grading, and tasteful caption bars.",
+  "duration": 20,
+  "inputs": {
+    "albumTitle": {
+      "type": "string",
+      "default": "ARCHITECTURAL PORTFOLIO",
+      "description": "Main gallery or collection title"
+    },
+    "slide1Caption": {
+      "type": "string",
+      "default": "VILLA MODERNA • KYOTO",
+      "description": "First showcase label"
+    },
+    "slide2Caption": {
+      "type": "string",
+      "default": "THE GLASS PAVILION • ZURICH",
+      "description": "Second showcase label"
+    },
+    "slide3Caption": {
+      "type": "string",
+      "default": "URBAN SANCTUARY • OSLO",
+      "description": "Third showcase label"
+    }
+  },
+  "storyboard": {
+    "title": "{{albumTitle}} — Showcase",
+    "width": 1920,
+    "height": 1080,
+    "frameRate": 30,
+    "look": "warmFilmic",
+    "brand": true,
+    "scenes": [
+      {
+        "type": "title",
+        "duration": 4.5,
+        "transitionIn": { "type": "fade", "duration": 0.8 },
+        "content": {
+          "text": "{{albumTitle}}",
+          "subtitle": "CURATED WORK 2026",
+          "preset": "blurReveal",
+          "style": "minimal"
+        },
+        "effects": [
+          {
+            "kind": "look",
+            "name": "vignette",
+            "options": { "amount": 0.4 }
+          }
+        ]
+      },
+      {
+        "type": "background",
+        "duration": 5.0,
+        "transitionIn": { "type": "dissolve", "duration": 0.8 },
+        "content": {
+          "style": "bokehShimmer",
+          "preset": "warmGold"
+        },
+        "effects": [
+          {
+            "kind": "lightEffect",
+            "name": "lightSweep",
+            "options": { "speed": 0.6 }
+          }
+        ]
+      },
+      {
+        "type": "lowerThird",
+        "duration": 5.5,
+        "transitionIn": { "type": "dissolve", "duration": 0.7 },
+        "content": {
+          "text": "{{slide1Caption}}",
+          "subtitle": "PROJECT HIGHLIGHT",
+          "preset": "minimalLine",
+          "style": "minimal"
+        }
+      },
+      {
+        "type": "endCard",
+        "duration": 5.0,
+        "transitionIn": { "type": "fade", "duration": 0.8 },
+        "content": {
+          "text": "{{albumTitle}}",
+          "subtitle": "EXPLORE FULL ARCHIVE AT STUDIO.DESIGN",
+          "preset": "fadeScale"
+        }
+      }
+    ]
+  }
+}

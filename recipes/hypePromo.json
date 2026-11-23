@@ -1,0 +1,120 @@
+{
+  "name": "hypePromo",
+  "description": "High-octane 30-second beat-synced promotional video with fast rhythmic cuts, kinetic typography overlays, glitch transitions, and dynamic camera moves.",
+  "duration": 30,
+  "inputs": {
+    "headline": {
+      "type": "string",
+      "default": "BREAK THE LIMITS",
+      "description": "High-impact promo headline"
+    },
+    "subheadline": {
+      "type": "string",
+      "default": "THE CHAMPIONSHIP BEGINS",
+      "description": "Supporting event or campaign subheadline"
+    },
+    "callToAction": {
+      "type": "string",
+      "default": "GET TICKETS NOW",
+      "description": "Closing action phrase"
+    },
+    "audioItemId": {
+      "type": "number",
+      "default": 0,
+      "description": "Optional project item ID for beat-synced soundtrack"
+    }
+  },
+  "storyboard": {
+    "title": "{{headline}} — Hype Promo",
+    "width": 1920,
+    "height": 1080,
+    "frameRate": 30,
+    "look": "action",
+    "brand": true,
+    "music": {
+      "itemId": 0,
+      "beatSync": true,
+      "fadeOut": 1.5
+    },
+    "scenes": [
+      {
+        "type": "title",
+        "duration": 4,
+        "transitionIn": { "type": "flash", "duration": 0.3 },
+        "content": {
+          "text": "ARE YOU READY?",
+          "subtitle": "SEASON 2026",
+          "preset": "stomp",
+          "style": "bold"
+        },
+        "effects": [
+          {
+            "kind": "distortion",
+            "name": "chromaticAberration",
+            "options": { "shift": 12 }
+          }
+        ]
+      },
+      {
+        "type": "background",
+        "duration": 6,
+        "transitionIn": { "type": "glitch", "duration": 0.4 },
+        "content": {
+          "style": "cyberGrid",
+          "preset": "neonPulse"
+        },
+        "effects": [
+          {
+            "kind": "particles",
+            "name": "digitalSparks",
+            "options": { "speed": 2.5 }
+          }
+        ]
+      },
+      {
+        "type": "3dText",
+        "duration": 6,
+        "transitionIn": { "type": "zoom", "duration": 0.4 },
+        "content": {
+          "text": "{{headline}}",
+          "subtitle": "{{subheadline}}",
+          "preset": "shatterRebuild"
+        },
+        "effects": [
+          {
+            "kind": "rig",
+            "name": "bounce",
+            "options": { "frequency": 4, "decay": 3 }
+          }
+        ]
+      },
+      {
+        "type": "counter",
+        "duration": 6,
+        "transitionIn": { "type": "whipPan", "duration": 0.3 },
+        "content": {
+          "text": "COUNTDOWN TO GLORY",
+          "preset": "speedCounter",
+          "style": "bold"
+        }
+      },
+      {
+        "type": "endCard",
+        "duration": 8,
+        "transitionIn": { "type": "fade", "duration": 0.5 },
+        "content": {
+          "text": "{{headline}}",
+          "subtitle": "{{callToAction}}",
+          "preset": "blurReveal"
+        },
+        "effects": [
+          {
+            "kind": "look",
+            "name": "cinemaBars",
+            "options": { "height": 90 }
+          }
+        ]
+      }
+    ]
+  }
+}

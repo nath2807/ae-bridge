@@ -1,0 +1,82 @@
+{
+  "name": "countdown",
+  "description": "Intense 10-second countdown sequence with animated numeric digits, rhythmic scale pulses, dynamic flash transitions, and an explosive climax.",
+  "duration": 10,
+  "inputs": {
+    "eventTitle": {
+      "type": "string",
+      "default": "LIVESTREAM STARTING",
+      "description": "Event or stream title to announce"
+    },
+    "startNumber": {
+      "type": "number",
+      "default": 10,
+      "description": "Initial countdown start number"
+    },
+    "climaxText": {
+      "type": "string",
+      "default": "WE ARE LIVE!",
+      "description": "Final text burst at zero"
+    }
+  },
+  "storyboard": {
+    "title": "Countdown — {{eventTitle}}",
+    "width": 1920,
+    "height": 1080,
+    "frameRate": 30,
+    "look": "highContrast",
+    "brand": true,
+    "scenes": [
+      {
+        "type": "title",
+        "duration": 2.0,
+        "transitionIn": { "type": "fade", "duration": 0.3 },
+        "content": {
+          "text": "{{eventTitle}}",
+          "subtitle": "GET READY",
+          "preset": "blurReveal",
+          "style": "bold"
+        }
+      },
+      {
+        "type": "counter",
+        "duration": 6.0,
+        "transitionIn": { "type": "flash", "duration": 0.2 },
+        "content": {
+          "text": "{{startNumber}}",
+          "preset": "countdownPulse",
+          "style": "bold"
+        },
+        "effects": [
+          {
+            "kind": "particles",
+            "name": "goldenEmbers",
+            "options": { "rate": 60 }
+          },
+          {
+            "kind": "distortion",
+            "name": "glitch",
+            "options": { "frequency": 2 }
+          }
+        ]
+      },
+      {
+        "type": "title",
+        "duration": 2.0,
+        "transitionIn": { "type": "flash", "duration": 0.2 },
+        "content": {
+          "text": "{{climaxText}}",
+          "preset": "stomp",
+          "style": "bold"
+        },
+        "effects": [
+          {
+            "kind": "lightEffect",
+            "name": "anamorphicFlare",
+            "options": { "brightness": 2.0 }
+          }
+        ]
+      }
+    ]
+  }
+}
