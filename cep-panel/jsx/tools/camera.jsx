@@ -20,7 +20,10 @@
         var cam = comp.layers.addCamera("Cinema Camera", [comp.width / 2, comp.height / 2]);
         var tr = cam.property("ADBE Transform Group");
         tr.property("ADBE Position").setValue([comp.width / 2, comp.height / 2, -1500]);
-        tr.property("ADBE Point of Interest").setValue([comp.width / 2, comp.height / 2, 0]);
+        var poi = tr.property("ADBE Point of Interest");
+        if (poi) {
+            poi.setValue([comp.width / 2, comp.height / 2, 0]);
+        }
         return cam;
     }
 
@@ -39,7 +42,7 @@
             }
             try {
                 prop.setTemporalEaseAtKey(k, inEases, outEases);
-            } catch (e) {}
+            } catch (e) { }
         }
     }
 
@@ -283,7 +286,7 @@
             var enabled = params && params.enabled !== undefined ? !!params.enabled : true;
             var dofProp = camOpts.property("ADBE Camera Depth of Field");
             if (dofProp) {
-                dofProp.setValue(enabled ? 1 : 0);
+                try { dofProp.setValue(enabled ? 1 : 0); } catch (eDof) {}
             }
 
             var result = {
@@ -296,9 +299,11 @@
                 var target = findLayer(comp, params.focusLayer);
                 var focusProp = camOpts.property("ADBE Camera Focus Distance");
                 if (focusProp) {
-                    focusProp.expression = 'length(transform.position, thisComp.layer("' + target.name + '").transform.position)';
-                    result.focusLayer = target.name;
-                    result.focusExpression = focusProp.expression;
+                    try {
+                        focusProp.expression = 'length(transform.position, thisComp.layer("' + target.name + '").transform.position)';
+                        result.focusLayer = target.name;
+                        result.focusExpression = focusProp.expression;
+                    } catch (eFocus) {}
                 }
             }
 
@@ -306,8 +311,7 @@
             if (params && params.aperture !== undefined) {
                 var apProp = camOpts.property("ADBE Camera Aperture");
                 if (apProp) {
-                    apProp.setValue(Number(params.aperture));
-                    result.aperture = Number(params.aperture);
+                    try { apProp.setValue(Number(params.aperture)); result.aperture = Number(params.aperture); } catch (eAp) {}
                 }
             }
 
@@ -315,8 +319,7 @@
             if (params && params.blurLevel !== undefined) {
                 var blurProp = camOpts.property("ADBE Camera Blur Level");
                 if (blurProp) {
-                    blurProp.setValue(Number(params.blurLevel));
-                    result.blurLevel = Number(params.blurLevel);
+                    try { blurProp.setValue(Number(params.blurLevel)); result.blurLevel = Number(params.blurLevel); } catch (eBlur) {}
                 }
             }
 

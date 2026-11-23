@@ -18,21 +18,14 @@
     function ensureCompRenderer(comp) {
         if (!comp) return;
         try {
-            if (comp.renderer === "ADBE Standard 3d") {
-                var avail = comp.renderers;
-                for (var i = 0; i < avail.length; i++) {
-                    if (avail[i] === "ADBE Advanced 3d") {
-                        comp.renderer = "ADBE Advanced 3d";
-                        return;
-                    }
-                }
-                for (var j = 0; j < avail.length; j++) {
-                    if (avail[j] === "ADBE Ernst") {
-                        comp.renderer = "ADBE Ernst";
-                        return;
-                    }
+            var avail = comp.renderers;
+            for (var j = 0; j < avail.length; j++) {
+                if (avail[j] === "ADBE Ernst" || avail[j] === "ADBE Calder") {
+                    comp.renderer = avail[j];
+                    return;
                 }
             }
+            if (avail.length > 0) comp.renderer = avail[0];
         } catch (e) {}
     }
 

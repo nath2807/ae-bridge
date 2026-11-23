@@ -11,16 +11,16 @@
 
         var tr = light.property("ADBE Transform Group");
         if (pos) {
-            tr.property("ADBE Position").setValue(pos);
+            try { tr.property("ADBE Position").setValue(pos); } catch (e) {}
         }
 
         var opts = light.property("ADBE Light Options Group");
         if (opts) {
-            if (color) opts.property("ADBE Light Color").setValue(toColor(color));
-            if (intensity !== undefined) opts.property("ADBE Light Intensity").setValue(Number(intensity));
+            if (color) { try { opts.property("ADBE Light Color").setValue(toColor(color)); } catch (e) {} }
+            if (intensity !== undefined) { try { opts.property("ADBE Light Intensity").setValue(Number(intensity)); } catch (e) {} }
             if (castsShadows !== undefined) {
                 var csProp = opts.property("ADBE Casts Shadows");
-                if (csProp) csProp.setValue(castsShadows ? 1 : 0);
+                if (csProp) { try { csProp.setValue(castsShadows ? 1 : 0); } catch (e) {} }
             }
         }
         return light;
@@ -41,9 +41,9 @@
                 var key = addLightToComp(comp, "Key Light", LightType.SPOT, [cX + 650, cY - 550, -1100], [1.0, 0.97, 0.94], 115, shadows);
                 var kOpts = key.property("ADBE Light Options Group");
                 if (kOpts) {
-                    kOpts.property("ADBE Light Cone Angle").setValue(65);
-                    kOpts.property("ADBE Light Cone Feather 2").setValue(50);
-                    if (shadows) kOpts.property("ADBE Light Shadow Diffusion").setValue(10);
+                    try { kOpts.property("ADBE Light Cone Angle").setValue(65); } catch (e) {}
+                    try { kOpts.property("ADBE Light Cone Feather 2").setValue(50); } catch (e) {}
+                    if (shadows) { try { kOpts.property("ADBE Light Shadow Diffusion").setValue(10); } catch (e) {} }
                 }
                 created.push(key.name);
 
@@ -59,9 +59,9 @@
                 var hardKey = addLightToComp(comp, "Dramatic Key Light", LightType.SPOT, [cX + 750, cY - 750, -600], [1.0, 0.96, 0.9], 135, shadows);
                 var hkOpts = hardKey.property("ADBE Light Options Group");
                 if (hkOpts) {
-                    hkOpts.property("ADBE Light Cone Angle").setValue(45);
-                    hkOpts.property("ADBE Light Cone Feather 2").setValue(25);
-                    if (shadows) hkOpts.property("ADBE Light Shadow Darkness").setValue(100);
+                    try { hkOpts.property("ADBE Light Cone Angle").setValue(45); } catch (e) {}
+                    try { hkOpts.property("ADBE Light Cone Feather 2").setValue(25); } catch (e) {}
+                    if (shadows) { try { hkOpts.property("ADBE Light Shadow Darkness").setValue(100); } catch (e) {} }
                 }
                 created.push(hardKey.name);
 
@@ -86,9 +86,9 @@
                 var sKey = addLightToComp(comp, "Studio Key", LightType.SPOT, [cX + 500, cY - 450, -1200], [1.0, 1.0, 1.0], 100, shadows);
                 var sOpts = sKey.property("ADBE Light Options Group");
                 if (sOpts) {
-                    sOpts.property("ADBE Light Cone Angle").setValue(75);
-                    sOpts.property("ADBE Light Cone Feather 2").setValue(75);
-                    if (shadows) sOpts.property("ADBE Light Shadow Diffusion").setValue(20);
+                    try { sOpts.property("ADBE Light Cone Angle").setValue(75); } catch (e) {}
+                    try { sOpts.property("ADBE Light Cone Feather 2").setValue(75); } catch (e) {}
+                    if (shadows) { try { sOpts.property("ADBE Light Shadow Diffusion").setValue(20); } catch (e) {} }
                 }
                 created.push(sKey.name);
 
@@ -104,8 +104,8 @@
                 var sunKey = addLightToComp(comp, "Golden Sunset Key", LightType.SPOT, [cX + 800, cY - 200, -700], [1.0, 0.62, 0.22], 130, shadows);
                 var sunOpts = sunKey.property("ADBE Light Options Group");
                 if (sunOpts) {
-                    sunOpts.property("ADBE Light Cone Angle").setValue(60);
-                    sunOpts.property("ADBE Light Cone Feather 2").setValue(45);
+                    try { sunOpts.property("ADBE Light Cone Angle").setValue(60); } catch (e) {}
+                    try { sunOpts.property("ADBE Light Cone Feather 2").setValue(45); } catch (e) {}
                 }
                 created.push(sunKey.name);
 
@@ -118,9 +118,9 @@
                 var moodySpot = addLightToComp(comp, "Moody Tungsten Spot", LightType.SPOT, [cX + 400, cY - 700, -500], [1.0, 0.85, 0.7], 95, shadows);
                 var mOpts = moodySpot.property("ADBE Light Options Group");
                 if (mOpts) {
-                    mOpts.property("ADBE Light Cone Angle").setValue(40);
-                    mOpts.property("ADBE Light Cone Feather 2").setValue(40);
-                    if (shadows) mOpts.property("ADBE Light Shadow Darkness").setValue(90);
+                    try { mOpts.property("ADBE Light Cone Angle").setValue(40); } catch (e) {}
+                    try { mOpts.property("ADBE Light Cone Feather 2").setValue(40); } catch (e) {}
+                    if (shadows) { try { mOpts.property("ADBE Light Shadow Darkness").setValue(90); } catch (e) {} }
                 }
                 created.push(moodySpot.name);
             }
@@ -129,7 +129,7 @@
             else if (preset === "soft") {
                 var soft1 = addLightToComp(comp, "Soft Key Point", LightType.POINT, [cX + 400, cY - 300, -900], [1.0, 0.98, 0.96], 80, shadows);
                 var softOpts = soft1.property("ADBE Light Options Group");
-                if (softOpts && shadows) softOpts.property("ADBE Light Shadow Diffusion").setValue(30);
+                if (softOpts && shadows) { try { softOpts.property("ADBE Light Shadow Diffusion").setValue(30); } catch (e) {} }
                 created.push(soft1.name);
 
                 var soft2 = addLightToComp(comp, "Soft Fill Point", LightType.POINT, [cX - 400, cY - 200, -900], [0.95, 0.97, 1.0], 70, false);
@@ -172,12 +172,10 @@
             var applied = {};
 
             if (params.intensity !== undefined) {
-                opts.property("ADBE Light Intensity").setValue(Number(params.intensity));
-                applied.intensity = Number(params.intensity);
+                try { opts.property("ADBE Light Intensity").setValue(Number(params.intensity)); applied.intensity = Number(params.intensity); } catch (e) {}
             }
             if (params.color !== undefined) {
-                opts.property("ADBE Light Color").setValue(toColor(params.color));
-                applied.color = params.color;
+                try { opts.property("ADBE Light Color").setValue(toColor(params.color)); applied.color = params.color; } catch (e) {}
             }
             if (params.coneAngle !== undefined) {
                 try {
@@ -194,8 +192,7 @@
             if (params.castsShadows !== undefined) {
                 var csProp = opts.property("ADBE Casts Shadows");
                 if (csProp) {
-                    csProp.setValue(params.castsShadows ? 1 : 0);
-                    applied.castsShadows = !!params.castsShadows;
+                    try { csProp.setValue(params.castsShadows ? 1 : 0); applied.castsShadows = !!params.castsShadows; } catch (e) {}
                 }
             }
             if (params.shadowDarkness !== undefined) {
