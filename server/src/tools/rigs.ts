@@ -96,8 +96,15 @@ export function registerRigTools(server: McpServer): void {
         mode: z.enum(["cycle", "pingpong", "offset"]).optional().describe("Loop mode for 'loop' rig"),
         leader: z.string().optional().describe("Leader layer name for 'delayFollow' rig"),
         targetLayer: z.string().optional().describe("Target layer name for 'lookAt' rig"),
-        audioLayer: layerRefSchema.optional().describe("Audio layer for 'audioReact' rig")
-      }).optional().describe("Rig-specific configuration options")
+        audioLayer: layerRefSchema.optional().describe("Audio layer for 'audioReact' rig"),
+        start: z.number().optional().describe("Starting value for 'counter' rig"),
+        end: z.number().optional().describe("Ending target value for 'counter' rig"),
+        duration: z.number().optional().describe("Count duration in seconds"),
+        decimals: z.number().optional().describe("Decimal precision for 'counter' rig"),
+        thousandsSeparator: z.boolean().optional().describe("Whether to format numbers with commas"),
+        prefix: z.string().optional().describe("Text prefix (e.g. '$')"),
+        suffix: z.string().optional().describe("Text suffix (e.g. '%')")
+      }).passthrough().optional().describe("Rig-specific configuration options")
     },
     async (params) => {
       try {

@@ -404,11 +404,19 @@
 
             // 9. Numeric Counter Rig (Source Text)
             else if (rig === "counter") {
-                ensureControl(layer, "slider", "Counter Start", 0.0);
-                ensureControl(layer, "slider", "Counter End", 1000.0);
-                ensureControl(layer, "slider", "Counter Duration", 3.0);
-                ensureControl(layer, "slider", "Counter Decimals", 0.0);
-                ensureControl(layer, "checkbox", "Thousands Separator", 1);
+                var startVal = options.start !== undefined ? Number(options.start) : 0.0;
+                var endVal = options.end !== undefined ? Number(options.end) : 1000.0;
+                var durVal = options.duration !== undefined ? Number(options.duration) : 3.0;
+                var decVal = options.decimals !== undefined ? Number(options.decimals) : 0.0;
+                var sepVal = options.thousandsSeparator !== false ? 1 : 0;
+                var pfx = options.prefix !== undefined ? String(options.prefix) : "";
+                var sfx = options.suffix !== undefined ? String(options.suffix) : "";
+
+                ensureControl(layer, "slider", "Counter Start", startVal);
+                ensureControl(layer, "slider", "Counter End", endVal);
+                ensureControl(layer, "slider", "Counter Duration", durVal);
+                ensureControl(layer, "slider", "Counter Decimals", decVal);
+                ensureControl(layer, "checkbox", "Thousands Separator", sepVal);
                 addedControls.push("Counter Start", "Counter End", "Counter Duration", "Counter Decimals", "Thousands Separator");
 
                 prop.expression = [
@@ -426,7 +434,7 @@
                     '    parts[0] = parts[0].replace(/\\B(?=(\\d{3})+(?!\\d))/g, ",");',
                     '    formatted = parts.join(".");',
                     '}',
-                    'formatted;'
+                    '"' + pfx + '" + formatted + "' + sfx + '";'
                 ].join("\n");
             }
 
