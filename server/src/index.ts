@@ -24,6 +24,10 @@ import { registerDistortTools } from "./tools/distort.js";
 import { registerRigTools } from "./tools/rigs.js";
 import { registerPreviewTools, cleanOldPreviews } from "./tools/preview.js";
 import { registerQaTools } from "./tools/qa.js";
+import { registerProjectTools } from "./tools/project.js";
+import { registerRenderTools } from "./tools/render.js";
+import { registerFormatTools } from "./tools/formats.js";
+import { registerTemplateTools } from "./tools/templates.js";
 
 async function main(): Promise<void> {
     console.error("[ae-bridge] Starting server...");
@@ -59,6 +63,10 @@ async function main(): Promise<void> {
     registerRigTools(server);
     registerPreviewTools(server);
     registerQaTools(server);
+    registerProjectTools(server);
+    registerRenderTools(server);
+    registerFormatTools(server);
+    registerTemplateTools(server);
 
     const transport = new StdioServerTransport();
     await server.connect(transport);

@@ -84,6 +84,13 @@ export function startBridge(customPort?: number): Promise<void> {
   });
 }
 
+/**
+ * Dispatch an ExtendScript method call to the active After Effects CEP panel over WebSocket.
+ * 
+ * Note: During in-AE renders (`mode: "ae"` with `app.project.renderQueue.render()`),
+ * After Effects is fully synchronous/blocked. For rendering tools, pass an extended `timeoutMs`
+ * (e.g. up to 2 hours: `7200000` ms).
+ */
 export async function callAE(
   method: string,
   params: object = {},

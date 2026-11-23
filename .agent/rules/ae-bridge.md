@@ -6,3 +6,8 @@ After creating or changing anything visual in After Effects:
 2. Run ae_contact_sheet and LOOK at it. Critique honestly against: visual hierarchy (one clear focal point), alignment and safe areas, spacing, color harmony and contrast, typography (max 2 fonts, good tracking/leading), motion timing (anticipation, ease, nothing linear unless intended, stagger feels natural), consistency, and whether it matches the user's request and mood.
 3. Fix the top problems using dedicated ae_ tools.
 4. Repeat at most 3 rounds, then report what you checked, what you fixed, and what could still be improved.
+
+## Workflow & Operations
+- Save the project with ae_save_project after every major step.
+- After editing jsx files, call ae_reload_tools instead of using raw scripts.
+- Before rendering, run ae_qa_check. Prefer mode 'ame' for long renders so After Effects stays responsive.
