@@ -51,7 +51,7 @@ export function registerCoreTools(server: McpServer): void {
   // 3. ae_execute_extendscript
   server.tool(
     "ae_execute_extendscript",
-    "Execute arbitrary ExtendScript code in After Effects.",
+    "LAST RESORT: run raw ExtendScript only when no dedicated ae_ tool can do the job.",
     {
       code: z.string().describe("ExtendScript code to execute in After Effects")
     },

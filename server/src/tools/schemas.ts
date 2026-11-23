@@ -16,10 +16,10 @@ export const layerRefSchema = z
 
 export const colorSchema = z
   .union([
-    z.tuple([z.number(), z.number(), z.number()]).describe("RGB color array [r, g, b] as 0-1 floats or 0-255 ints"),
+    z.array(z.number()).min(3).max(4).describe("RGB or RGBA color array [r, g, b] as 0-1 floats or 0-255 ints"),
     z.string().describe("Hex color string (e.g. '#FF0000' or '#FFF')")
   ])
-  .describe("Color as [r, g, b] tuple or hex string");
+  .describe("Color as [r, g, b] array or hex string");
 
 export const propertyPathSchema = z
   .union([

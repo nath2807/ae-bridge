@@ -6,6 +6,7 @@ import { registerCompTools } from "./tools/comps.js";
 import { registerLayerTools } from "./tools/layers.js";
 import { registerAnimationTools } from "./tools/animation.js";
 import { registerEffectTools } from "./tools/effects.js";
+import { registerTitleTools } from "./tools/titles.js";
 
 async function main(): Promise<void> {
     console.error("[ae-bridge] Starting server...");
@@ -21,6 +22,7 @@ async function main(): Promise<void> {
     registerLayerTools(server);
     registerAnimationTools(server);
     registerEffectTools(server);
+    registerTitleTools(server);
 
     const transport = new StdioServerTransport();
     await server.connect(transport);

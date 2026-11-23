@@ -1,0 +1,1 @@
+When working in After Effects, always prefer dedicated ae_ tools (ae_create_title_card, ae_apply_title_preset, ae_add_text_animator, ae_animate, etc). Use ae_execute_extendscript only if no tool exists, and then suggest a new tool to add to the bridge.

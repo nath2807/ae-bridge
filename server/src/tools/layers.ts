@@ -55,7 +55,7 @@ export function registerLayerTools(server: McpServer): void {
       fontSize: z.number().positive().optional().default(100).describe("Font size in points (default 100)"),
       fillColor: colorSchema.optional().describe("Text fill color"),
       justification: z.enum(["left", "center", "right"]).optional().describe("Paragraph text alignment"),
-      position: z.tuple([z.number(), z.number()]).optional().describe("2D position [x, y] in pixels (defaults to comp center)")
+      position: z.array(z.number()).min(2).max(3).optional().describe("2D position [x, y] in pixels (defaults to comp center)")
     },
     async (params) => {
       try {
@@ -75,7 +75,7 @@ export function registerLayerTools(server: McpServer): void {
       compRef: compRefSchema.optional(),
       name: z.string().describe("Name of the shape layer"),
       shape: z.enum(["rectangle", "ellipse", "star", "polygon"]).describe("Parametric shape geometry"),
-      size: z.tuple([z.number(), z.number()]).describe("Shape dimensions [width, height] in pixels"),
+      size: z.array(z.number()).min(2).max(2).describe("Shape dimensions [width, height] in pixels"),
       fillColor: colorSchema.optional().describe("Shape fill color"),
       strokeColor: colorSchema.optional().describe("Shape stroke color"),
       strokeWidth: z.number().min(0).optional().describe("Stroke width in pixels"),
@@ -99,7 +99,7 @@ export function registerLayerTools(server: McpServer): void {
       compRef: compRefSchema.optional(),
       name: z.string().describe("Name of the camera layer"),
       preset: z.enum(["35mm", "50mm", "85mm"]).optional().describe("Lens focal length preset"),
-      position: z.tuple([z.number(), z.number(), z.number()]).optional().describe("Initial 3D position [x, y, z] in pixels")
+      position: z.array(z.number()).min(3).max(3).optional().describe("Initial 3D position [x, y, z] in pixels")
     },
     async (params) => {
       try {
@@ -193,7 +193,7 @@ export function registerLayerTools(server: McpServer): void {
       rotationX: z.number().optional().describe("X-axis rotation angle in degrees for 3D layers"),
       rotationY: z.number().optional().describe("Y-axis rotation angle in degrees for 3D layers"),
       rotationZ: z.number().optional().describe("Z-axis rotation angle in degrees for 3D layers"),
-      orientation: z.tuple([z.number(), z.number(), z.number()]).optional().describe("3D orientation [x, y, z] in degrees"),
+      orientation: z.array(z.number()).min(3).max(3).optional().describe("3D orientation [x, y, z] in degrees"),
       opacity: z.number().min(0).max(100).optional().describe("Opacity percentage (0-100)")
     },
     async (params) => {
