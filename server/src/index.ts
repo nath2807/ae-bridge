@@ -2,6 +2,10 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { startBridge } from "./bridge.js";
 import { registerCoreTools } from "./tools/core.js";
+import { registerCompTools } from "./tools/comps.js";
+import { registerLayerTools } from "./tools/layers.js";
+import { registerAnimationTools } from "./tools/animation.js";
+import { registerEffectTools } from "./tools/effects.js";
 
 async function main(): Promise<void> {
     console.error("[ae-bridge] Starting server...");
@@ -13,6 +17,10 @@ async function main(): Promise<void> {
 
     await startBridge();
     registerCoreTools(server);
+    registerCompTools(server);
+    registerLayerTools(server);
+    registerAnimationTools(server);
+    registerEffectTools(server);
 
     const transport = new StdioServerTransport();
     await server.connect(transport);

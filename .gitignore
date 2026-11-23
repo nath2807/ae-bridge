@@ -3,3 +3,5 @@ dist/
 cep-panel/lib/
 .env
 *.log
+mcp_config.json
+cep-panel/.debug

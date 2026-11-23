@@ -76,4 +76,22 @@
             }
         }
     };
+
+    // Load shared helpers
+    var helpersFile = File(scriptFolder.fsName + "/lib/helpers.jsx");
+    if (helpersFile.exists) {
+        $.evalFile(helpersFile);
+    }
+
+    // Load all tool files in tools/
+    var toolsFolder = Folder(scriptFolder.fsName + "/tools");
+    if (toolsFolder.exists) {
+        var toolFiles = toolsFolder.getFiles();
+        for (var i = 0; i < toolFiles.length; i++) {
+            var tf = toolFiles[i];
+            if (tf instanceof File && /\.jsx$/i.test(tf.name)) {
+                $.evalFile(tf);
+            }
+        }
+    }
 })();
