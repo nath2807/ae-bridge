@@ -319,6 +319,8 @@
     $.global.cleanPath = cleanPath;
     $.global.toColor = toColor;
     $.global.layerSummary = layerSummary;
+    $.global.getLayerType = getLayerType;
+    $.global.isLayer3D = isLayer3D;
     $.global.withUndo = withUndo;
     $.global.normalizePropertyPath = normalizePropertyPath;
     $.global.resolveProperty = resolveProperty;
@@ -331,6 +333,8 @@
         $.global.aeBridge.cleanPath = cleanPath;
         $.global.aeBridge.toColor = toColor;
         $.global.aeBridge.layerSummary = layerSummary;
+        $.global.aeBridge.getLayerType = getLayerType;
+        $.global.aeBridge.isLayer3D = isLayer3D;
         $.global.aeBridge.withUndo = withUndo;
         $.global.aeBridge.normalizePropertyPath = normalizePropertyPath;
         $.global.aeBridge.resolveProperty = resolveProperty;

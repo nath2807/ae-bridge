@@ -22,9 +22,13 @@ import { registerParticleTools } from "./tools/particles.js";
 import { registerBackgroundTools } from "./tools/backgrounds.js";
 import { registerDistortTools } from "./tools/distort.js";
 import { registerRigTools } from "./tools/rigs.js";
+import { registerPreviewTools, cleanOldPreviews } from "./tools/preview.js";
+import { registerQaTools } from "./tools/qa.js";
 
 async function main(): Promise<void> {
     console.error("[ae-bridge] Starting server...");
+
+    await cleanOldPreviews();
 
     const server = new McpServer({
         name: "ae-bridge",
@@ -53,6 +57,8 @@ async function main(): Promise<void> {
     registerBackgroundTools(server);
     registerDistortTools(server);
     registerRigTools(server);
+    registerPreviewTools(server);
+    registerQaTools(server);
 
     const transport = new StdioServerTransport();
     await server.connect(transport);
