@@ -181,13 +181,13 @@
                 try {
                     opts.property("ADBE Light Cone Angle").setValue(Number(params.coneAngle));
                     applied.coneAngle = Number(params.coneAngle);
-                } catch (e) {}
+                } catch (e) { }
             }
             if (params.coneFeather !== undefined) {
                 try {
                     opts.property("ADBE Light Cone Feather 2").setValue(Number(params.coneFeather));
                     applied.coneFeather = Number(params.coneFeather);
-                } catch (e2) {}
+                } catch (e2) { }
             }
             if (params.castsShadows !== undefined) {
                 var csProp = opts.property("ADBE Casts Shadows");
@@ -199,13 +199,13 @@
                 try {
                     opts.property("ADBE Light Shadow Darkness").setValue(Number(params.shadowDarkness));
                     applied.shadowDarkness = Number(params.shadowDarkness);
-                } catch (e3) {}
+                } catch (e3) { }
             }
             if (params.shadowDiffusion !== undefined) {
                 try {
                     opts.property("ADBE Light Shadow Diffusion").setValue(Number(params.shadowDiffusion));
                     applied.shadowDiffusion = Number(params.shadowDiffusion);
-                } catch (e4) {}
+                } catch (e4) { }
             }
 
             return {
@@ -245,7 +245,7 @@
                     // Add HDRI item as layer in comp or set environment source
                     var hdriLayer = comp.layers.add(hdriItem);
                     hdriLayer.enabled = false; // often used as hidden environment source
-                } catch (eHdri) {}
+                } catch (eHdri) { }
             }
 
             return {
