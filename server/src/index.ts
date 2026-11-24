@@ -32,6 +32,11 @@ import { registerAnalysisTools } from "./tools/analysis.js";
 import { registerBrandTools } from "./director/brand.js";
 import { registerStoryboardTools } from "./director/storyboard.js";
 import { registerRecipeTools } from "./director/recipes.js";
+import { registerQualityTools } from "./tools/quality.js";
+import { registerMotionTools } from "./tools/motion.js";
+import { registerFinishingTools } from "./tools/finishing.js";
+import { registerReferenceTools } from "./tools/reference.js";
+import { registerStyleTools } from "./director/styles.js";
 import { registerPrompts } from "./prompts.js";
 
 export async function runServer(): Promise<void> {
@@ -76,6 +81,11 @@ export async function runServer(): Promise<void> {
     registerBrandTools(server);
     registerStoryboardTools(server);
     registerRecipeTools(server);
+    registerQualityTools(server);
+    registerMotionTools(server);
+    registerStyleTools(server);
+    registerFinishingTools(server);
+    registerReferenceTools(server);
     registerPrompts(server);
 
     const transport = new StdioServerTransport();

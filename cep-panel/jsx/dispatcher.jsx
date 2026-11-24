@@ -77,10 +77,20 @@
         }
     };
 
-    // Load shared helpers
+    // Load shared helpers and libraries in lib/
     var helpersFile = File(scriptFolder.fsName + "/lib/helpers.jsx");
     if (helpersFile.exists) {
         $.evalFile(helpersFile);
+    }
+    var libFolder = Folder(scriptFolder.fsName + "/lib");
+    if (libFolder.exists) {
+        var libFiles = libFolder.getFiles("*.jsx");
+        for (var l = 0; l < libFiles.length; l++) {
+            var lf = libFiles[l];
+            if (lf instanceof File && lf.name !== "helpers.jsx") {
+                $.evalFile(lf);
+            }
+        }
     }
 
     // Load all tool files in tools/

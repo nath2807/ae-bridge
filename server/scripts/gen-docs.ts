@@ -35,6 +35,11 @@ import { registerAnalysisTools } from "../src/tools/analysis.js";
 import { registerBrandTools } from "../src/director/brand.js";
 import { registerStoryboardTools } from "../src/director/storyboard.js";
 import { registerRecipeTools } from "../src/director/recipes.js";
+import { registerQualityTools } from "../src/tools/quality.js";
+import { registerMotionTools } from "../src/tools/motion.js";
+import { registerStyleTools } from "../src/director/styles.js";
+import { registerFinishingTools } from "../src/tools/finishing.js";
+import { registerReferenceTools } from "../src/tools/reference.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -84,7 +89,12 @@ const CATEGORIES: Array<{ name: string; register: (s: any) => void }> = [
   { name: "Asset & Beat Analysis", register: registerAnalysisTools },
   { name: "Brand Identity Kit", register: registerBrandTools },
   { name: "Storyboard & Director", register: registerStoryboardTools },
-  { name: "Video Production Recipes", register: registerRecipeTools }
+  { name: "Video Production Recipes", register: registerRecipeTools },
+  { name: "Render Quality & Standards", register: registerQualityTools },
+  { name: "Motion Language & Easing", register: registerMotionTools },
+  { name: "Design Styles & Aesthetics", register: registerStyleTools },
+  { name: "Finishing Pass & Compositing", register: registerFinishingTools },
+  { name: "Reference Matching & Palette", register: registerReferenceTools }
 ];
 
 function generateDocs(): void {

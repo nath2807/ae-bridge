@@ -50,15 +50,30 @@ Follow this disciplined step-by-step production pipeline:
    - If using a recipe: execute via ae_run_recipe.
    - If custom: build using ae_build_storyboard with scene precomps.
 
-5. VISUAL SELF-REVIEW LOOP:
-   - Generate an ae_contact_sheet of the master composition to visually inspect every beat of the timeline.
-   - Run ae_qa_check to catch overlaps, hidden layers, unparented elements, or missing assets.
-   - Refine any scene using ae_update_scene or direct adjustment tools until the pacing, typography, and motion feel broadcast-ready.
+5. HIGH-END FINISHING & QUALITY PASS:
+   - Call ae_set_quality_mode with mode: "final" to ensure 32/16 bpc deep color, linear blending, shutter angle 180, shutter phase -90, and motion blur on comp and animated layers.
+   - Call ae_finish_pass to apply a professional compositing stack (depth haze, light wrap, bloom & glow, chromatic aberration, film grain, vignette, color grade matching style palette, and atmosphere layers).
 
-6. RENDER & REPORT:
+6. ART DIRECTOR SCORED RUBRIC & VISUAL REVIEW:
+   - Generate an ae_contact_sheet of the master composition to visually inspect timeline progression.
+   - Run ae_qa_check to catch overlaps, hidden layers, unparented elements, or missing assets.
+   - Check ae_get_style to review active style's do and don't design principles.
+   - Evaluate and score the composition across all 8 criteria (1–10 scale):
+     1. Composition & focal point (clear visual hierarchy, no competing centers)
+     2. Typography (font pairing, tracking, leading, safe zones, text animation)
+     3. Color & contrast (palette harmony, contrast ratio, emissive balance)
+     4. Depth & layering (foreground elements, midground hero, background atmosphere)
+     5. Lighting (specular rim highlights, shadows, directional light intent)
+     6. Motion quality (named curves, stagger cascade, natural anticipation, motion blur)
+     7. Detail & finish (texture, film grain, bloom threshold, vignette, halation)
+     8. Brief match (faithfulness to user intent, brand guidelines, and target duration)
+   - RULE: Do not finalize until EVERY score is >= 8 or at most 3 refinement rounds are completed.
+   - Refine any deficient area using dedicated ae_ tools (ae_update_scene, ae_apply_motion_curve, ae_stagger, etc.).
+
+7. RENDER & REPORT:
    - If social variants are requested, call ae_create_all_social_variants.
    - Queue or render using ae_render with the requested preset (e.g. 'mp4High').
-   - Provide a final director summary with comp name, duration, and render status.`
+   - Provide the complete scored review scorecard, comp name, duration, and render status.`
             }
           }
         ]
@@ -92,19 +107,34 @@ POLISH PROTOCOL:
    - Run ae_qa_check on "${compName}" to check for dead frames, overlapping elements, or improper transforms.
    - Generate an ae_contact_sheet (count: 6 to 9) to examine the visual progression and color hierarchy.
 
-2. CRITIQUE & GAP ANALYSIS:
+2. ART DIRECTOR SCORED RUBRIC & GAP ANALYSIS:
+   - Call ae_get_style to inspect active style do/dont design rules.
+   - Generate an ae_contact_sheet (count: 6 to 9) to examine visual progression.
+   - Score the composition across all 8 criteria (1–10):
+     1. Composition & focal point
+     2. Typography
+     3. Color & contrast
+     4. Depth & layering (foreground/mid/background)
+     5. Lighting
+     6. Motion quality (curves, stagger, motion blur)
+     7. Detail & finish (texture, grain, glow)
+     8. Brief match
    - Check typography: Is it static? Add text animators (ae_apply_title_preset or ae_add_text_animator).
-   - Check energy & motion: Add subtle rigs (ae_apply_rig: bounce, wiggle, or camera shake).
+   - Check motion: Re-ease keyframes using ae_apply_motion_curve and cascade layers with ae_stagger.
    - Check atmosphere: Add background layers (ae_create_background), particles (ae_add_particles), or lighting sweeps (ae_add_light_effect).
-   - Check color & finish: Apply cinematic looks or film grain (ae_apply_look).
 
-3. EXECUTION:
+3. FINISHING PASS & QUALITY:
+   - Run ae_set_quality_mode with mode: "final".
+   - Run ae_finish_pass with appropriate level ("subtle", "rich", "extreme") matching the style.
+
+4. EXECUTION & ITERATION:
    - Apply specific high-impact enhancements.
-   - Run ae_checkpoint with a descriptive label (e.g. "pre-polish").
+   - Re-score contact sheet. Do not complete until every score is >= 8 or 3 rounds are done.
+   - Run ae_checkpoint with a descriptive label (e.g. "polished-master").
 
-4. VERIFICATION:
-   - Generate a new ae_contact_sheet or ae_preview_frame to verify before/after improvement.
-   - Summarize changes made and why they improve production quality.`
+5. VERIFICATION:
+   - Generate a final ae_contact_sheet to verify improvement.
+   - Output the scored rubric table with justifications for each criterion.`
             }
           }
         ]

@@ -1,0 +1,47 @@
+{
+  "name": "epicTrailer",
+  "title": "Epic Trailer",
+  "description": "Monumental dark obsidian titanium, molten amber forge glows, volcanic ember particles, slow thunderous pushes, and cinematic blockbuster impact.",
+  "palette": {
+    "bg": "#070607",
+    "surface": "#151214",
+    "primary": "#F97316",
+    "secondary": "#DC2626",
+    "accent": "#FDE047",
+    "text": "#FDF4E7",
+    "glow": "#FB923C"
+  },
+  "typography": {
+    "heading": "CinzelDecorative-Bold",
+    "body": "Montserrat-SemiBold",
+    "fallbacks": ["Trajan Pro", "Times New Roman", "serif"],
+    "tracking": 260,
+    "caseRule": "uppercase"
+  },
+  "motion": {
+    "curve": "heavy",
+    "durationScale": 1.4,
+    "stagger": 0.1,
+    "energy": "high"
+  },
+  "lighting": "dramaticForgeRim",
+  "camera": "monumentalInclinePush",
+  "looks": ["anamorphicFlare", "heavySmokeHaze", "filmGrain", "highContrastWarmGrade"],
+  "textures": ["moltenAtmosphere", "metalScratchTexture"],
+  "particles": {
+    "preset": "sparks",
+    "density": 40,
+    "speed": 0.6,
+    "blendMode": "Add"
+  },
+  "do": [
+    "Build tension with massive scale contrast and deliberate monumental pacing",
+    "Ignite metallic edges with fiery molten amber rim lighting and flares",
+    "Drift hot atmospheric ember particles through the camera foreground"
+  ],
+  "dont": [
+    "Do not use bouncy cartoon physics or frivolous casual fonts",
+    "Avoid flat, washed out, low-contrast ambient backgrounds",
+    "Never rush scene transitions before the visual weight registers"
+  ]
+}

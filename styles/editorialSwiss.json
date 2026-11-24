@@ -1,0 +1,41 @@
+{
+  "name": "editorialSwiss",
+  "title": "Editorial Swiss",
+  "description": "Bold asymmetric typography, disciplined modular grid structure, stark crimson red focus against monochrome slate, and razor-sharp linear snap transitions.",
+  "palette": {
+    "bg": "#0D0E12",
+    "surface": "#1A1C23",
+    "primary": "#E11D48",
+    "secondary": "#71717A",
+    "accent": "#FFFFFF",
+    "text": "#F4F4F5",
+    "glow": "#FDA4AF"
+  },
+  "typography": {
+    "heading": "HelveticaNeue-Bold",
+    "body": "HelveticaNeue-Regular",
+    "fallbacks": ["Arial", "Franklin Gothic Medium", "sans-serif"],
+    "tracking": -20,
+    "caseRule": "uppercase"
+  },
+  "motion": {
+    "curve": "expoOut",
+    "durationScale": 0.85,
+    "stagger": 0.04,
+    "energy": "high"
+  },
+  "lighting": "flatGraphicStudio",
+  "camera": "sharpOrthographicShift",
+  "looks": ["cleanSharpen", "highContrastMono", "editorialVignette"],
+  "textures": ["fineHalftonePrint", "ruledGridLines"],
+  "do": [
+    "Lock elements tightly to an asymmetric column grid with clear hierarchy",
+    "Use oversized tightly tracked grotesque headline typography",
+    "Deploy crimson accent blocks strategically to guide the focal point"
+  ],
+  "dont": [
+    "Do not use blurry diffuse drop shadows or chaotic messy gradients",
+    "Avoid romantic script or ornate decorative fonts",
+    "Never compromise text legibility for superficial visual styling"
+  ]
+}

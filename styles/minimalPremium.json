@@ -1,0 +1,41 @@
+{
+  "name": "minimalPremium",
+  "title": "Minimal Premium",
+  "description": "Architectural clarity, generous white space, subtle slate gradients, pristine typography, and smooth, seamless mathematical eases.",
+  "palette": {
+    "bg": "#0B0D11",
+    "surface": "#161922",
+    "primary": "#F1F5F9",
+    "secondary": "#64748B",
+    "accent": "#38BDF8",
+    "text": "#FFFFFF",
+    "glow": "#BAE6FD"
+  },
+  "typography": {
+    "heading": "Inter-Medium",
+    "body": "Inter-Regular",
+    "fallbacks": ["Helvetica Neue", "Arial", "sans-serif"],
+    "tracking": 40,
+    "caseRule": "titlecase"
+  },
+  "motion": {
+    "curve": "quintOut",
+    "durationScale": 0.95,
+    "stagger": 0.05,
+    "energy": "medium"
+  },
+  "lighting": "softStudio",
+  "camera": "smoothLinearDolly",
+  "looks": ["subtleBloom", "fineGrain", "softVignette"],
+  "textures": ["cleanGradient", "microNoise"],
+  "do": [
+    "Maintain strict grid alignment and comfortable margin padding",
+    "Pair subtle geometric accents with restrained desaturated tones",
+    "Use smooth deceleration curves for seamless elegance"
+  ],
+  "dont": [
+    "Do not clutter screens with gratuitous decorative shapes",
+    "Avoid harsh high-contrast saturated drop shadows",
+    "Never use jarring glitch or erratic camera shakes"
+  ]
+}

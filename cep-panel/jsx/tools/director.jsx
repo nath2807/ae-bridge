@@ -344,6 +344,17 @@
                 } catch (eLook) {}
             }
 
+            // Apply broadcast quality defaults across master comp and scene precomps
+            if ($.global.applyQualityDefaults) {
+                try {
+                    $.global.applyQualityDefaults(mainComp);
+                    for (var sIdx = 0; sIdx < sceneMap.length; sIdx++) {
+                        var sc = findComp({ compId: sceneMap[sIdx].compId });
+                        if (sc) $.global.applyQualityDefaults(sc);
+                    }
+                } catch (eQd) {}
+            }
+
             // 9. Automated QA Check
             var qaSummary = null;
             if (h.ae_qa_check) {

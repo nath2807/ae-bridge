@@ -252,6 +252,22 @@
         var helpersFile = File(scriptFolder.fsName + "/lib/helpers.jsx");
         if (helpersFile.exists) {
             $.evalFile(helpersFile);
+            reloadedFiles.push("lib/helpers.jsx");
+        }
+        var libFolder = Folder(scriptFolder.fsName + "/lib");
+        if (libFolder.exists) {
+            var libFiles = libFolder.getFiles("*.jsx");
+            for (var l = 0; l < libFiles.length; l++) {
+                var lf = libFiles[l];
+                if (lf instanceof File && lf.name !== "helpers.jsx") {
+                    try {
+                        $.evalFile(lf);
+                        reloadedFiles.push("lib/" + lf.name);
+                    } catch (eLib) {
+                        reloadedFiles.push("lib/" + lf.name + " (ERROR: " + eLib.message + ")");
+                    }
+                }
+            }
         }
 
         var toolsFolder = Folder(scriptFolder.fsName + "/tools");

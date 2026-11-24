@@ -1,0 +1,47 @@
+{
+  "name": "cinematicNoir",
+  "title": "Cinematic Noir",
+  "description": "Deep atmospheric shadows, silvery tungsten key highlights, subtle anamorphic streak flares, and deliberate weighted pacing for dramatic intrigue.",
+  "palette": {
+    "bg": "#060709",
+    "surface": "#12141A",
+    "primary": "#E2E8F0",
+    "secondary": "#475569",
+    "accent": "#94A3B8",
+    "text": "#F8FAFC",
+    "glow": "#C8D6E5"
+  },
+  "typography": {
+    "heading": "Cinzel-Bold",
+    "body": "Lora-Regular",
+    "fallbacks": ["Georgia", "Times New Roman", "serif"],
+    "tracking": 180,
+    "caseRule": "uppercase"
+  },
+  "motion": {
+    "curve": "heavy",
+    "durationScale": 1.25,
+    "stagger": 0.08,
+    "energy": "low"
+  },
+  "lighting": "dramaticRim",
+  "camera": "slowCreepingPush",
+  "looks": ["filmGrain", "anamorphicStreak", "vignette", "coolShadowWarmHighlight"],
+  "textures": ["subtleDustScratches", "anisotropicLines"],
+  "particles": {
+    "preset": "dust",
+    "density": 15,
+    "speed": 0.3,
+    "blendMode": "Screen"
+  },
+  "do": [
+    "Embrace negative space and heavy shadowy silhouettes",
+    "Use high letter tracking for title headers to create cinematic breathing room",
+    "Employ slow, weighted camera drifts with gradual focal depth transitions"
+  ],
+  "dont": [
+    "Do not use overly fast, snappy, or bouncy spring transitions",
+    "Avoid high saturation neon colors or rainbow spectrum elements",
+    "Never blow out background layers with flat ambient illumination"
+  ]
+}

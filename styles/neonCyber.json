@@ -1,0 +1,47 @@
+{
+  "name": "neonCyber",
+  "title": "Neon Cyber",
+  "description": "High-octane cyberpunk atmosphere with electric cyan, searing magenta laser glows, dark obsidian void, and instant snap velocity.",
+  "palette": {
+    "bg": "#05060A",
+    "surface": "#0E111B",
+    "primary": "#00F0FF",
+    "secondary": "#7928CA",
+    "accent": "#FF007A",
+    "text": "#E0F7FA",
+    "glow": "#00F0FF"
+  },
+  "typography": {
+    "heading": "Orbitron-Bold",
+    "body": "Rajdhani-Medium",
+    "fallbacks": ["Impact", "Trebuchet MS", "sans-serif"],
+    "tracking": 120,
+    "caseRule": "uppercase"
+  },
+  "motion": {
+    "curve": "snap",
+    "durationScale": 0.8,
+    "stagger": 0.04,
+    "energy": "high"
+  },
+  "lighting": "neonRim",
+  "camera": "dynamicOrbitPunch",
+  "looks": ["bloom", "chromaticAberration", "glitchScanlines", "edgeGlow"],
+  "textures": ["cyberGrid", "crtScanlines"],
+  "particles": {
+    "preset": "sparks",
+    "density": 35,
+    "speed": 1.4,
+    "blendMode": "Add"
+  },
+  "do": [
+    "Layer vivid emissive cyan and magenta against pitch black voids",
+    "Use snappy keyframe acceleration with optical bloom on impacts",
+    "Incorporate digital glitch transitions and wireframe grid overlays"
+  ],
+  "dont": [
+    "Do not use muted earth tones, pastel washes, or sepia grades",
+    "Avoid sluggish, floating easing curves with no punch",
+    "Never leave neon text without emissive outer glow falloff"
+  ]
+}

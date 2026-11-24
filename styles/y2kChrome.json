@@ -1,0 +1,47 @@
+{
+  "name": "y2kChrome",
+  "title": "Y2K Chrome",
+  "description": "Liquid mercury chrome textures, iridescent lilac and sky blue refractions, bubble geometry, chromatic dispersion, and playful elastic bounce.",
+  "palette": {
+    "bg": "#0A0B16",
+    "surface": "#16182E",
+    "primary": "#C084FC",
+    "secondary": "#38BDF8",
+    "accent": "#F472B6",
+    "text": "#F8FAFC",
+    "glow": "#E879F9"
+  },
+  "typography": {
+    "heading": "Syne-ExtraBold",
+    "body": "PlusJakartaSans-Medium",
+    "fallbacks": ["Trebuchet MS", "Century Gothic", "sans-serif"],
+    "tracking": 80,
+    "caseRule": "titlecase"
+  },
+  "motion": {
+    "curve": "backOut",
+    "durationScale": 0.9,
+    "stagger": 0.06,
+    "energy": "high"
+  },
+  "lighting": "iridescentDome",
+  "camera": "playfulTiltOrbit",
+  "looks": ["chromaticAberration", "chromeSpecular", "starGlints", "bloom"],
+  "textures": ["liquidMercurySheen", "holographicFoil"],
+  "particles": {
+    "preset": "sparkles",
+    "density": 25,
+    "speed": 0.8,
+    "blendMode": "Screen"
+  },
+  "do": [
+    "Reflect prismatic pastel gradients across liquid metallic 3D extrusions",
+    "Add 4-point star glints and optical dispersals along specular highlights",
+    "Inject snappy overshoot and subtle elastic spring settling to layer entrances"
+  ],
+  "dont": [
+    "Do not render flat, dry, matte surfaces devoid of gloss and reflection",
+    "Avoid somber, dull, desaturated earth tones or heavy grunge",
+    "Never use rigid linear motion curves without playful overshoot"
+  ]
+}

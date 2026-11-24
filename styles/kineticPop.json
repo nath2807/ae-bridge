@@ -1,0 +1,41 @@
+{
+  "name": "kineticPop",
+  "title": "Kinetic Pop",
+  "description": "High-saturation cobalt blue, vibrant marigold yellow, snappy elastic bouncing text, playful overshoot geometry, and dynamic pop motion.",
+  "palette": {
+    "bg": "#0D1117",
+    "surface": "#161E2E",
+    "primary": "#2563EB",
+    "secondary": "#FBBF24",
+    "accent": "#F43F5E",
+    "text": "#FFFFFF",
+    "glow": "#60A5FA"
+  },
+  "typography": {
+    "heading": "Poppins-ExtraBold",
+    "body": "Poppins-Medium",
+    "fallbacks": ["Arial Rounded MT Bold", "Trebuchet MS", "sans-serif"],
+    "tracking": 10,
+    "caseRule": "uppercase"
+  },
+  "motion": {
+    "curve": "backOut",
+    "durationScale": 0.8,
+    "stagger": 0.05,
+    "energy": "high"
+  },
+  "lighting": "brightKeyLight",
+  "camera": "dynamicPunchPop",
+  "looks": ["cleanVividGrade", "edgeSharpness", "lightPopBloom"],
+  "textures": ["dottedHalftone", "cleanVectorBackdrop"],
+  "do": [
+    "Energize animations with snappy overshoot arrival and playful scale pops",
+    "Coordinate bold primary colors with punchy, high-contrast text layers",
+    "Stagger character animations or layered cards for rhythmic cascade"
+  ],
+  "dont": [
+    "Do not use dark muddy gloomy grays or dreary sepia tones",
+    "Avoid dull linear eases with zero anticipation or bounce",
+    "Never hide vibrant graphics behind heavy murky blur"
+  ]
+}

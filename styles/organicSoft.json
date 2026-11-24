@@ -1,0 +1,47 @@
+{
+  "name": "organicSoft",
+  "title": "Organic Soft",
+  "description": "Earthy sage, warm sun-baked terracotta, tactile clay tones, gentle botanical diffusion, and smooth, flowing fluid deceleration.",
+  "palette": {
+    "bg": "#151814",
+    "surface": "#222720",
+    "primary": "#A3B899",
+    "secondary": "#DDB892",
+    "accent": "#E07A5F",
+    "text": "#F4F1DE",
+    "glow": "#C8D6AF"
+  },
+  "typography": {
+    "heading": "Fraunces-SemiBold",
+    "body": "PlusJakartaSans-Regular",
+    "fallbacks": ["Garamond", "Palatino", "serif"],
+    "tracking": 60,
+    "caseRule": "titlecase"
+  },
+  "motion": {
+    "curve": "smooth",
+    "durationScale": 1.15,
+    "stagger": 0.07,
+    "energy": "low"
+  },
+  "lighting": "diffusedWarmMorning",
+  "camera": "gentleFloatingParallax",
+  "looks": ["softAtmosphereHaze", "warmFilmGrain", "creamyBloom"],
+  "textures": ["tactilePaperGrain", "naturalLinen"],
+  "particles": {
+    "preset": "dust",
+    "density": 18,
+    "speed": 0.2,
+    "blendMode": "Screen"
+  },
+  "do": [
+    "Curate soothing natural botanic colors with warm parchment contrast",
+    "Animate with gentle fluid momentum, soft ease ins, and peaceful drift",
+    "Layer subtle paper textures and organic atmospheric dust motes"
+  ],
+  "dont": [
+    "Do not introduce sharp technological glitching or synthetic neon glows",
+    "Avoid harsh digital bevels, glossy plastic speculars, or rapid strobe cuts",
+    "Never rush the visual pacing; let scenes breathe naturally"
+  ]
+}

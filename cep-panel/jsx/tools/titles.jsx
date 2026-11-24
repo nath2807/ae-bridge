@@ -186,6 +186,9 @@
                 }
             }
 
+            if ($.global.applyQualityDefaults) {
+                try { $.global.applyQualityDefaults(comp); } catch (eQ) {}
+            }
             comp.openInViewer();
 
             return {
@@ -353,6 +356,9 @@
                 }
             }
 
+            if ($.global.applyQualityDefaults) {
+                try { $.global.applyQualityDefaults(comp); } catch (eQ) {}
+            }
             comp.openInViewer();
 
             return {

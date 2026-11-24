@@ -1,6 +1,6 @@
 # AE Bridge Tools Reference
 
-Auto-generated reference documentation for all **139 MCP tools** provided by the AE Bridge server.
+Auto-generated reference documentation for all **150 MCP tools** provided by the AE Bridge server.
 
 ## Table of Contents
 
@@ -35,6 +35,11 @@ Auto-generated reference documentation for all **139 MCP tools** provided by the
 - [Brand Identity Kit](#brand-identity-kit) (2 tools)
 - [Storyboard & Director](#storyboard-director) (3 tools)
 - [Video Production Recipes](#video-production-recipes) (3 tools)
+- [Render Quality & Standards](#render-quality-standards) (1 tools)
+- [Motion Language & Easing](#motion-language-easing) (2 tools)
+- [Design Styles & Aesthetics](#design-styles-aesthetics) (3 tools)
+- [Finishing Pass & Compositing](#finishing-pass-compositing) (2 tools)
+- [Reference Matching & Palette](#reference-matching-palette) (3 tools)
 
 ---
 
@@ -1625,6 +1630,124 @@ Execute a video recipe in a single tool call. Fills input placeholders, builds a
 | `name` | `string` | **Yes** | Recipe name to execute | - |
 | `inputs` | `object` | No | Map of input values to substitute into the recipe placeholders | `[object Object]` |
 | `compName` | `string` | No | Optional custom name for the resulting composition | - |
+
+---
+
+## Render Quality & Standards
+
+### `ae_set_quality_mode`
+
+Switch After Effects render quality mode between 'draft' (8bpc, 1/2 resolution factor, motion blur disabled for fast responsive scrubbing) and 'final' (32bpc or 16bpc deep color, linear blending enabled, motion blur enabled for comp + animated layers, 180 shutter angle, -90 shutter phase, 16 samples per frame, full resolution, Advanced 3D renderer).
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `mode` | `"draft" | "final"` | **Yes** | Quality tier mode: 'draft' for fast editing previews, 'final' for master broadcast fidelity | - |
+
+---
+
+## Motion Language & Easing
+
+### `ae_apply_motion_curve`
+
+Re-ease existing keyframes on a layer property using high-end named motion curves ('expoOut', 'expoInOut', 'quintOut', 'backOut' with overshoot, 'snap', 'smooth', 'heavy', 'elasticOut', 'linear').
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `compRef` | `object` | No | Reference to a composition (by ID or name). If omitted, the active composition is used. | - |
+| `layerRef` | `object` | **Yes** | Target layer possessing keyframes | - |
+| `path` | `string | array` | **Yes** | Property path (e.g. 'position', 'scale', 'opacity', or ['Transform', 'Position']) | - |
+| `curve` | `"expoOut" | "expoInOut" | "quintOut" | "backOut" | "snap" | "smooth" | "heavy" | "elasticOut" | "linear"` | **Yes** | Named motion curve to apply | - |
+
+### `ae_stagger`
+
+Offset layer start times in sequence for natural cascading visual entrance and rhythmic motion choreography.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `compRef` | `object` | No | Reference to a composition (by ID or name). If omitted, the active composition is used. | - |
+| `layerRefs` | `array` | **Yes** | Ordered array of layer references to stagger | - |
+| `delay` | `number` | No | Time delay offset in seconds between consecutive layers (default 0.06s) | `0.06` |
+| `order` | `"forward" | "reverse" | "center" | "random"` | No | Staggering cascade order: 'forward' (top to bottom), 'reverse', 'center' (midpoint radiating out), or 'random' | `forward` |
+
+---
+
+## Design Styles & Aesthetics
+
+### `ae_list_styles`
+
+List all available design styles with palettes, motion curves, typography, and active indicator.
+
+*No parameters required.*
+
+### `ae_get_style`
+
+Retrieve complete specification for a design style. If name is omitted, returns the active style. Optionally overlays active brand kit colors and fonts if brand=true.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `name` | `string` | No | Style identifier (e.g. 'cinematicNoir', 'neonCyber'). If omitted, active style is returned. | - |
+| `brand` | `boolean` | No | If true, master brand kit colors and fonts override style defaults | `false` |
+
+### `ae_set_active_style`
+
+Set the globally active design style used across storyboards, titles, motion curves, and finishing passes. Persisted in ~/.ae-bridge/state.json.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `name` | `string` | **Yes** | Name of the style to activate (e.g. 'cinematicNoir', 'minimalPremium', 'neonCyber') | - |
+
+---
+
+## Finishing Pass & Compositing
+
+### `ae_finish_pass`
+
+Apply a high-end compositing finishing pass on top of a composition in a toggleable 'FINISH' group (depth haze, light wrap, bloom & glow, chromatic aberration, film grain matched to resolution, vignette, color grade matching style palette, optional halation and anamorphic streak flare, foreground dust particles and background atmosphere).
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `compRef` | `object` | No | Reference to a composition (by ID or name). If omitted, the active composition is used. | - |
+| `level` | `"subtle" | "rich" | "extreme"` | No | Finishing intensity level: 'subtle' for refined minimalism, 'rich' for balanced broadcast master, 'extreme' for heavy stylized look | `rich` |
+| `style` | `string` | No | Style identifier (e.g. 'cinematicNoir', 'neonCyber', 'minimalPremium'). If omitted, the currently active style is used. | - |
+
+### `ae_remove_finish_pass`
+
+Remove all finishing pass adjustment layers, particles, and controllers from a composition.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `compRef` | `object` | No | Reference to a composition (by ID or name). If omitted, the active composition is used. | - |
+
+---
+
+## Reference Matching & Palette
+
+### `ae_analyze_reference`
+
+Analyze a reference image: extracts dominant 6-color palette via k-means clustering, computes average luminance, contrast, saturation, and warm/cool bias, recommends the closest matching built-in style, and generates a ready-to-use custom style JSON.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `imagePath` | `string` | **Yes** | Absolute file path to the reference image (PNG, JPG, WebP) | - |
+
+### `ae_compare_to_reference`
+
+Create a side-by-side composite comparison between a reference image and the current composition render at a given timestamp. Returns visual comparison file for agent review.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `compRef` | `object` | No | Reference to a composition (by ID or name). If omitted, the active composition is used. | - |
+| `time` | `number` | No | Timestamp in seconds to capture from comp. If omitted, uses playhead time | - |
+| `imagePath` | `string` | **Yes** | Absolute file path to the reference target image | - |
+
+### `ae_create_style_from_reference`
+
+Analyze a reference image and author a new persistent style JSON in the /styles directory conforming to the style schema.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `imagePath` | `string` | **Yes** | Absolute file path to the reference image | - |
+| `name` | `string` | **Yes** | Unique style identifier (e.g. 'cyberObsidian', 'sunsetWarmth') | - |
 
 ---
 

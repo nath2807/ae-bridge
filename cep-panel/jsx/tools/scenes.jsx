@@ -146,6 +146,9 @@
                 }
             }
 
+            if ($.global.applyQualityDefaults) {
+                try { $.global.applyQualityDefaults(comp); } catch (eQ) {}
+            }
             comp.openInViewer();
 
             return {
@@ -410,6 +413,9 @@
                 throw new Error("Unknown 3D scene preset: '" + preset + "'. Valid presets: 'extrudedLogoReveal', 'floatingCards', 'cubeGrid', 'infiniteTunnel', 'layeredParallax', 'orbitingShowcase', 'helixText'.");
             }
 
+            if ($.global.applyQualityDefaults) {
+                try { $.global.applyQualityDefaults(comp); } catch (eQ) {}
+            }
             comp.openInViewer();
 
             return {

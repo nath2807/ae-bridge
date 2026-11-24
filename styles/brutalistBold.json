@@ -1,0 +1,41 @@
+{
+  "name": "brutalistBold",
+  "title": "Brutalist Bold",
+  "description": "Raw industrial concrete geometry, high-visibility hazard orange and acid lime accents, massive condensed type blocks, and uncompromising mechanical punch.",
+  "palette": {
+    "bg": "#121316",
+    "surface": "#1E2026",
+    "primary": "#FF5400",
+    "secondary": "#CCFF00",
+    "accent": "#FFFFFF",
+    "text": "#EAEBED",
+    "glow": "#FF8C42"
+  },
+  "typography": {
+    "heading": "DrukWide-Super",
+    "body": "SpaceMono-Bold",
+    "fallbacks": ["Impact", "Arial Black", "monospace"],
+    "tracking": -10,
+    "caseRule": "uppercase"
+  },
+  "motion": {
+    "curve": "snap",
+    "durationScale": 0.75,
+    "stagger": 0.03,
+    "energy": "high"
+  },
+  "lighting": "harshOverheadStrobe",
+  "camera": "abruptHardZoom",
+  "looks": ["industrialGrain", "highPassSharpen", "posterizeEdges"],
+  "textures": ["concretePavement", "heavyNoiseGrain"],
+  "do": [
+    "Scale headline typography to extreme, frame-filling proportions",
+    "Pair stark high-visibility hazard hues with brutal raw concrete grays",
+    "Use instant whip-snaps, hard cuts, and abrupt mechanical kinetic eases"
+  ],
+  "dont": [
+    "Do not use gentle pastel transitions or romantic serif flourishes",
+    "Avoid smooth gradual crossfades when a decisive hard impact fits",
+    "Never dilute visual impact with timid, tiny typography"
+  ]
+}

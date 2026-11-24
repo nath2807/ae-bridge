@@ -1,0 +1,41 @@
+{
+  "name": "techHUD",
+  "title": "Tech HUD",
+  "description": "Tactical telemetry interface, deep navy slate backdrop, laser cyan data lines, amber status warnings, monospace typography, and precision snaps.",
+  "palette": {
+    "bg": "#040810",
+    "surface": "#0B1528",
+    "primary": "#06B6D4",
+    "secondary": "#1E3A8A",
+    "accent": "#F59E0B",
+    "text": "#E2E8F0",
+    "glow": "#22D3EE"
+  },
+  "typography": {
+    "heading": "ShareTechMono-Regular",
+    "body": "JetBrainsMono-Regular",
+    "fallbacks": ["Consolas", "Courier New", "monospace"],
+    "tracking": 140,
+    "caseRule": "uppercase"
+  },
+  "motion": {
+    "curve": "snap",
+    "durationScale": 0.75,
+    "stagger": 0.03,
+    "energy": "high"
+  },
+  "lighting": "backlitGridArray",
+  "camera": "targetLockedTracking",
+  "looks": ["hudAberration", "scanlinesOverlay", "subtleBloom", "vignette"],
+  "textures": ["radarReticle", "coordinateGridLines"],
+  "do": [
+    "Incorporate precise telemetry reticles, coordinates, and bounding brackets",
+    "Use monospace typography with generous technical letter tracking",
+    "Execute transitions with micro-second snap steps and telemetry blips"
+  ],
+  "dont": [
+    "Do not use casual hand-drawn, cursive, or romantic serif fonts",
+    "Avoid organic wobbly curves that feel loose or inaccurate",
+    "Never clutter the target focal point with unreadable telemetry noise"
+  ]
+}

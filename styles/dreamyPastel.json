@@ -1,0 +1,47 @@
+{
+  "name": "dreamyPastel",
+  "title": "Dreamy Pastel",
+  "description": "Ethereal lavender sky, soft blush rose, diffuse powder blue bokeh, dreamy floating deceleration, and angelic luminous glow.",
+  "palette": {
+    "bg": "#0F0D17",
+    "surface": "#1C172B",
+    "primary": "#D8B4FE",
+    "secondary": "#93C5FD",
+    "accent": "#FBCFE8",
+    "text": "#FAF5FF",
+    "glow": "#E9D5FF"
+  },
+  "typography": {
+    "heading": "Cormorant-SemiBold",
+    "body": "Inter-Light",
+    "fallbacks": ["Didot", "Georgia", "serif"],
+    "tracking": 160,
+    "caseRule": "titlecase"
+  },
+  "motion": {
+    "curve": "expoInOut",
+    "durationScale": 1.35,
+    "stagger": 0.09,
+    "energy": "low"
+  },
+  "lighting": "celestialSoftDiffuser",
+  "camera": "gentleDreamFloat",
+  "looks": ["diffuseGlow", "dreamHaze", "softFilmGrain", "pastelTint"],
+  "textures": ["etherealClouds", "softBokehOrbs"],
+  "particles": {
+    "preset": "snow",
+    "density": 16,
+    "speed": 0.2,
+    "blendMode": "Screen"
+  },
+  "do": [
+    "Wrap highlights with soft, dreamy atmospheric diffusion and haze",
+    "Let floating camera movement drift gracefully through pastel layers",
+    "Use elegant serif titles with airy letter tracking and gentle fade-ins"
+  ],
+  "dont": [
+    "Do not use aggressive high-velocity camera whips or abrupt snaps",
+    "Avoid harsh industrial black and neon yellow hazard contrasts",
+    "Never apply hard jagged edges without optical softness"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "name": "luxuryGold",
+  "title": "Luxury Gold",
+  "description": "Opulent champagne and burnished gold leaf textures, obsidian marble surfaces, regal serif typography, and majestic slow-motion choreography.",
+  "palette": {
+    "bg": "#080705",
+    "surface": "#171410",
+    "primary": "#D4AF37",
+    "secondary": "#8C7335",
+    "accent": "#F5E7B2",
+    "text": "#FCFBF7",
+    "glow": "#FFDF73"
+  },
+  "typography": {
+    "heading": "PlayfairDisplay-Bold",
+    "body": "CormorantGaramond-Regular",
+    "fallbacks": ["Bodoni MT", "Didot", "Georgia", "serif"],
+    "tracking": 220,
+    "caseRule": "uppercase"
+  },
+  "motion": {
+    "curve": "heavy",
+    "durationScale": 1.3,
+    "stagger": 0.09,
+    "energy": "low"
+  },
+  "lighting": "warmSpecularSpot",
+  "camera": "grandSweepingPan",
+  "looks": ["warmGlow", "softDepthHaze", "filmGrain", "anamorphicFlare"],
+  "textures": ["brushedGoldShine", "marbleVignette"],
+  "particles": {
+    "preset": "sparkles",
+    "density": 20,
+    "speed": 0.25,
+    "blendMode": "Add"
+  },
+  "do": [
+    "Polish bevels and extruded metallic contours with sharp specular glints",
+    "Keep typography majestic with generous tracking and centered symmetry",
+    "Float subtle golden embers in foreground camera plane"
+  ],
+  "dont": [
+    "Do not use frantic fast cutting or erratic glitch distortions",
+    "Avoid cheap bright neon greens or cartoon primary tones",
+    "Never crowd the composition; let negative space radiate exclusivity"
+  ]
+}
