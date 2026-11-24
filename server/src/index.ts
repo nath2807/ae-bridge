@@ -42,13 +42,13 @@ import { registerBlenderAETools } from "./tools/blenderAE.js";
 import { registerPrompts } from "./prompts.js";
 
 export async function runServer(): Promise<void> {
-    console.error("[ae-bridge] Starting server v1.0.0...");
+    console.error("[ae-bridge] Starting server v1.2.0...");
 
     await cleanOldPreviews();
 
     const server = new McpServer({
         name: "ae-bridge",
-        version: "1.0.0"
+        version: "1.2.0"
     });
 
     await startBridge();

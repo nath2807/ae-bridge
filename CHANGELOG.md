@@ -4,6 +4,48 @@ All notable changes to the AE Bridge project are documented in this file.
 
 ---
 
+## [1.2.0] - 2026-11-24
+
+### Added
+- **Blender 3D Bridge (Step 12):**
+  - Headless Blender integration supporting Blender 4.2 through 5.x with automatic GPU compute device selection (Cycles OptiX/CUDA/HIP/Metal & EEVEE Next).
+  - Robust compatibility layer (`blender/compat.py`) handling Blender 5.0+ Slotted Action channelbags architecture, dynamic EEVEE engine identifiers, and Principled BSDF socket name differences.
+  - Background asynchronous job queue (`startBlenderJob`, `blender_render`, `blender_job_status`, `blender_cancel_job`) with progress streaming (`AEB_PROGRESS`) and disk persistence.
+  - 14 procedural PBR material presets (`chrome`, `gold`, `brushedAluminum`, `glass`, `frostedGlass`, `glossyPlastic`, `matteClay`, `ceramic`, `rubber`, `carbonFiber`, `holographic`, `neonEmission`, `liquidMetal`, `marble`).
+  - 7 studio cyclorama lighting rigs (`studioSoft`, `studioDramatic`, `rimNeon`, `sunset`, `productWhite`, `darkLuxury`, `volumetricBeams`) and Poly Haven CC0 HDRI caching (`blender_hdri_fetch`).
+  - 9 physical camera moves (`orbit`, `orbitHalf`, `pushIn`, `pullOut`, `craneUp`, `flyThrough`, `turntable`, `heroReveal`, `dollyZoom`) with F-curve easing.
+  - 3D typography generator with per-character staggered cascade animation and SVG vector logo 3D extrusion (`blender_3d_title`, `blender_logo_reveal`).
+  - Physics simulations (`dropAndBounce`, `shatter`, `clothReveal`, `windFlag`, `scatterFall`) and procedural Geometry Node networks (`cubeGridWave`, `scatterOnSurface`, `particleField`, `rings`).
+  - Camera tracking matrix and FOV export (`camera.json`) syncing directly into After Effects 3D cameras and tracking null anchors (`ae_import_blender_render`).
+  - Normalized Z-depth pass compositing and depth effects (`ae_depth_effects`: camera lens blur, atmospheric fog, color depth mapping).
+  - New scene type `"blender3d"` integrated into declarative storyboards (`ae_build_storyboard`).
+  - Human handoff tool `blender_save_blend` for saving inspectable `.blend` files.
+
+### Fixed
+- **Render Preset Hierarchy & High-Bitrate Template Resolution:**
+  - Upgraded template matching order in `ae_render`:
+    1. Dedicated templates starting with `"AE Bridge"` matching the preset (`"AE Bridge H264 High"`, `"AE Bridge H264 Web"`).
+    2. Bitrate-aware keyword fallback, selecting the highest Mbps for `mp4High` and lowest Mbps for `mp4Web`.
+  - Added advisory warning for `mp4High` when falling back to templates under 20 Mbps with guidance to create `"AE Bridge H264 High"`.
+  - Output payloads now explicitly include `templateName` and `matchedTemplate`.
+  - Fixed JSX script folder path resolution in `ae_reload_tools`.
+
+---
+
+## [1.1.0] - 2026-11-24
+
+### Added
+- **High-End Design Engine (Step 11):**
+  - Global render quality modes (`ae_set_quality_mode`): `draft` (8bpc, half res) vs `final` (16/32bpc linear, 16-sample motion blur, Advanced 3D renderer).
+  - Motion curve language (`ae_apply_motion_curve`): `expoOut`, `expoInOut`, `quintOut`, `backOut` (overshoot), `snap`, `smooth`, `heavy`, `elasticOut`, `linear`.
+  - Layer stagger cascade engine (`ae_stagger`) supporting `forward`, `reverse`, `center`, and `random` ordering.
+  - 12 comprehensive style packs (`minimalPremium`, `techFuturistic`, `editorialSerif`, `boldPunchy`, `warmEditorial`, `darkLuxury`, `vaporwaveRetro`, `cinematicNoir`, `playfulPop`, `documentaryRaw`, `neonCyber`, `brutalistMonochrome`) controlling fonts, palettes, motion curves, and light wraps.
+  - Broadcast compositing finishing pass (`ae_finish_pass` / `ae_remove_finish_pass`) with toggleable FINISH stack: depth haze, light wrap, bloom & glow, halation, chromatic aberration, film grain, and color grading.
+  - Image reference extraction and matching (`ae_analyze_reference`, `ae_compare_to_reference`, `ae_create_style_from_reference`) using color quantization and luminance analysis.
+  - Automated Art Director review rubric scoring composition hierarchy, rhythm, typography, and finishing on a 0–100 scale.
+
+---
+
 ## [1.0.0] - 2026-11-23
 
 ### Release Highlights (Steps 1–10)

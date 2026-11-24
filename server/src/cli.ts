@@ -356,7 +356,7 @@ function handleConfig(clientArg?: string): void {
 
 function printUsage(): void {
   console.log(`
-AE Bridge CLI — The Adobe After Effects MCP Bridge (v1.0.0)
+AE Bridge CLI — The Adobe After Effects MCP Bridge (v1.2.0)
 
 USAGE:
   ae-bridge                           Start the MCP server over stdio

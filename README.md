@@ -10,7 +10,7 @@ AE Bridge turns AI assistants into professional motion design directors. Instead
 
 ## Architecture
 
-AE Bridge consists of a high-performance Node.js MCP server running over stdio that communicates with an authenticated Adobe CEP extension panel inside After Effects over an isolated local WebSocket connection (`127.0.0.1:8765`).
+AE Bridge consists of a high-performance Node.js MCP server running over stdio that communicates with an authenticated Adobe CEP extension panel inside After Effects over an isolated local WebSocket connection (`127.0.0.1:8765`), with optional headless Blender 4.2+ / 5.x subprocess orchestration for photoreal 3D rendering.
 
 ```mermaid
 flowchart TD
@@ -22,7 +22,9 @@ flowchart TD
         MCP["MCP Server (stdio)"]
         Auth["Token Auth (~/.ae-bridge/token)"]
         Vision["Vision Pipeline (sharp)"]
+        DesignEngine["Design Engine (Styles & Motion)"]
         Recipes["Recipe & Storyboard Engine"]
+        BlenderJobs["Blender Job Queue & Async Runner"]
         WSClient["WebSocket Server (127.0.0.1:8765)"]
     end
 
@@ -32,10 +34,22 @@ flowchart TD
         AE["After Effects Engine & Render Queue"]
     end
 
+    subgraph BlenderEngine["Blender 4.2+ / 5.x (Headless 3D)"]
+        BlenderRunner["blender/runner.py"]
+        CyclesEEVEE["Cycles (OptiX/CUDA) / EEVEE Next"]
+        Passes["RGBA Sequence + Z-Depth + camera.json"]
+    end
+
     LLM <-->|Model Context Protocol| MCP
+    MCP --> DesignEngine
     MCP --> Recipes
     MCP --> Vision
     MCP <--> WSClient
+    MCP <-->|Subprocess Spawn| BlenderJobs
+    BlenderJobs --> BlenderRunner
+    BlenderRunner --> CyclesEEVEE
+    CyclesEEVEE --> Passes
+    Passes -->|ae_import_blender_render| Dispatcher
     WSClient <-->|Secure WebSocket (Token Handshake)| CEP
     CEP <-->|csInterface.evalScript| Dispatcher
     Dispatcher <-->|DOM & ExtendScript API| AE
@@ -45,7 +59,8 @@ flowchart TD
 
 ## Core Capabilities
 
-- **Photoreal Blender 3D Bridge:** Headless Blender 4.2+ / 5.x integration with GPU acceleration (Cycles OptiX/CUDA & EEVEE Next), 14 PBR materials (chrome, gold, glass, carbon fiber, holographic thin film), studio cyclorama lighting, physics simulations (rigid bodies, shatter, cloth reveals), procedural Geometry Nodes, camera tracking sync (`camera.json`), and multi-pass Z-depth compositing in After Effects.
+- **Photoreal Blender 3D Bridge (v1.2.0):** Headless Blender 4.2+ / 5.x integration with GPU acceleration (Cycles OptiX/CUDA & EEVEE Next), 14 PBR materials (chrome, gold, glass, carbon fiber, holographic thin film), studio cyclorama lighting, physics simulations (rigid bodies, shatter, cloth reveals), procedural Geometry Nodes, camera tracking sync (`camera.json`), and multi-pass Z-depth compositing in After Effects.
+- **High-End Design Engine (v1.1.0):** 12 curated visual style packs (`minimalPremium`, `techFuturistic`, `darkLuxury`, `cinematicNoir`, etc.), named motion curves (`expoOut`, `snap`, `smooth`, `heavy`, `elasticOut`), layer stagger cascading, full broadcast finishing passes (`ae_finish_pass` with bloom, light wrap, film grain, halation, and chromatic aberration), reference image style extraction, and Art Director scored review.
 - **Executive Director Layer:** Declarative multi-scene storyboards, 12 pre-built video production recipes (`youtubeIntro`, `productLaunch`, `hypePromo`, `socialAd15s`, etc.), brand kit persistence, and milestone checkpoints.
 - **Visual Self-Review & Vision:** Live frame capture, multi-frame contact sheets composited with `sharp`, time-stamped visual progression inspection, and automated composition QA.
 - **Motion Graphics & Typography:** Kinetic text presets, text animators, broadcast-quality lower thirds, 3D extruded typography, and animated counters.
@@ -53,16 +68,28 @@ flowchart TD
 - **Particle & Shader Effects:** Procedural spark emitters, floating embers, cosmic stars, light sweeps, anamorphic flares, chromatic aberration, and glitch distortions.
 - **Cinematic Color & Looks:** One-click film grain, vignette, bleach bypass, cinema bars, LUT application, and adjustment grades.
 - **Editing & Timeline:** Multi-track footage assembly, slip editing, speed ramping, time remapping, and audio volume ducking.
-- **Export & Social Distribution:** Smart auto-reframe for 9:16 vertical (Reels/TikTok/Shorts), 1:1 square, and 4:5 portrait formats; background rendering via Adobe Media Encoder (AME) or direct in-AE rendering.
+- **Export & Social Distribution:** Smart auto-reframe for 9:16 vertical (Reels/TikTok/Shorts), 1:1 square, and 4:5 portrait formats; background rendering via Adobe Media Encoder (AME) or direct in-AE rendering with bitrate-aware template lookup (`AE Bridge H264 High`).
 
 ---
 
 ## System Requirements
 
-- **Adobe After Effects:** 2024 or higher (v24.0+ / v25.0+)
+- **Adobe After Effects:** 2024 or higher (v24.0+ / v25.0+ / v27.0+)
 - **Node.js:** v20.0.0 or higher
-- **Operating System:** Windows 10/11 or macOS 12+ (Apple Silicon or Intel)
+- **Blender (Optional):** v4.2.0 or higher (supports 4.2, 5.0, 5.3+; required only for photoreal 3D rendering and physics simulations)
+- **Operating System:** Windows 10/11, macOS 12+ (Apple Silicon or Intel), or Linux (Blender headless)
 - **AI Client:** Antigravity, Claude Desktop, Cursor, VS Code (Cline / Roo Code), or any MCP-compliant client
+
+---
+
+## Blender 3D Configuration (Optional)
+
+AE Bridge automatically searches standard installation locations across Windows, macOS, and Linux for Blender 4.2+ and 5.x.
+
+To manually specify or override the Blender binary:
+1. **Environment Variable:** Set `BLENDER_PATH` to the absolute path of `blender.exe` (Windows) or `blender` (macOS/Linux).
+2. **Via MCP Tool:** Run `blender_set_path` with `{ "path": "<path-to-blender>" }` to persist it in `~/.ae-bridge/state.json`.
+3. **Verify:** Run `blender_status` to inspect GPU hardware detection, active engine, and Poly Haven HDRI directory.
 
 ---
 
@@ -158,7 +185,7 @@ Add the AE Bridge server to your client's configuration file:
 
 ---
 
-## 10 Example Prompts
+## 14 Example Prompts
 
 1. **Brand Setup:**
    > "Set my brand kit: name 'Nova Labs', primary #00E5FF, secondary #FF148C, accent #D4AF37, background #05060A, text #F5F5F7, style 'tech'."
@@ -180,6 +207,14 @@ Add the AE Bridge server to your client's configuration file:
    > "Detect beats on the soundtrack layer, place comp markers on every beat, and add an animated bounce rig that scales to the rhythm."
 10. **Automated Polish:**
     > "Review and polish composition 'Main Title': check visual hierarchy, add camera shake to the climax, and render an mp4High deliverable."
+11. **Style + Finish Pass (v1.1):**
+    > "Apply the darkLuxury style pack to comp 'Hero Title', stagger child text layers by 4 frames with center order, and apply a rich finishing pass with bloom, film grain, and halation."
+12. **Reference Image Matching (v1.1):**
+    > "Analyze the color palette and contrast of 'reference.png' with ae_analyze_reference, generate a custom style profile using ae_create_style_from_reference, and apply it to our product showcase comp."
+13. **Photoreal 3D Title (v1.2):**
+    > "Render a 2-second 3D title for 'NOVA X' in Blender using gold PBR material, studioDramatic lighting, orbit camera move, and import it into After Effects with camera tracking."
+14. **3D Physics Simulation (v1.2):**
+    > "Create a 3D dropAndBounce physics simulation with brushedAluminum spheres, export the Z-depth pass, and composite it into After Effects with ae_depth_effects optical lens blur."
 
 ---
 
@@ -195,9 +230,11 @@ Add the AE Bridge server to your client's configuration file:
 
 - [Installation Guide (Windows & macOS)](docs/installation.md)
 - [System Architecture](docs/architecture.md)
+- [Blender 3D Bridge Guide](docs/blender.md)
+- [Design Engine & Styles Guide](docs/styles.md)
 - [Video Production Recipes](docs/recipes.md)
 - [Storyboard Specification](docs/storyboard.md)
-- [Complete Tools Reference (139 Tools)](docs/tools.md)
+- [Complete Tools Reference (165 Tools)](docs/tools.md)
 - [Troubleshooting & FAQ](docs/troubleshooting.md)
 - [Contributing Tools](docs/contributing-tools.md)
 
