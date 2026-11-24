@@ -16,16 +16,113 @@
         "wav": [/wav/i, /audio.*only/i, /aiff/i]
     };
 
+    function extractMbps(name) {
+        if (!name) return null;
+        var match = String(name).match(/(\d+(?:\.\d+)?)\s*mbps/i);
+        if (match) {
+            return parseFloat(match[1]);
+        }
+        return null;
+    }
+
     function findTemplateForPreset(om, presetName) {
         if (!om || !om.templates) return null;
         var templates = om.templates;
-        var patterns = PRESET_PATTERNS[presetName] || [new RegExp(presetName, "i")];
+        var preset = String(presetName);
 
-        for (var p = 0; p < patterns.length; p++) {
-            var regex = patterns[p];
-            for (var t = 0; t < templates.length; t++) {
-                if (regex.test(templates[t])) {
-                    return templates[t];
+        // 1. Template lookup order: templates whose name starts with "AE Bridge" matching the preset
+        if (preset === "mp4High" || preset === "mp4Web") {
+            var targetExact = preset === "mp4High" ? "AE Bridge H264 High" : "AE Bridge H264 Web";
+            var targetKeyword = preset === "mp4High" ? "high" : "web";
+
+            // Check exact name first
+            for (var i = 0; i < templates.length; i++) {
+                var tExact = templates[i];
+                if (tExact && tExact.toLowerCase() === targetExact.toLowerCase()) {
+                    return {
+                        name: tExact,
+                        isAeBridge: true,
+                        mbps: extractMbps(tExact)
+                    };
+                }
+            }
+
+            // Check if name starts with "AE Bridge" and contains the preset keyword
+            for (var j = 0; j < templates.length; j++) {
+                var tPrefix = templates[j];
+                if (tPrefix && tPrefix.toLowerCase().indexOf("ae bridge") === 0 && tPrefix.toLowerCase().indexOf(targetKeyword) !== -1) {
+                    return {
+                        name: tPrefix,
+                        isAeBridge: true,
+                        mbps: extractMbps(tPrefix)
+                    };
+                }
+            }
+        }
+
+        // 2. Fallback keyword search:
+        // choosing the HIGHEST Mbps number found in the template name for mp4High and the lowest for mp4Web
+        var patterns = PRESET_PATTERNS[preset] || [new RegExp(preset, "i")];
+
+        if (preset === "mp4High" || preset === "mp4Web") {
+            var candidatesWithMbps = [];
+            var candidatesWithoutMbps = [];
+            var seen = {};
+
+            for (var p = 0; p < patterns.length; p++) {
+                var regex = patterns[p];
+                for (var t = 0; t < templates.length; t++) {
+                    var candidate = templates[t];
+                    if (!seen[candidate] && regex.test(candidate)) {
+                        seen[candidate] = true;
+                        var mbpsVal = extractMbps(candidate);
+                        if (mbpsVal !== null) {
+                            candidatesWithMbps.push({ name: candidate, mbps: mbpsVal, patternIndex: p });
+                        } else {
+                            candidatesWithoutMbps.push({ name: candidate, patternIndex: p });
+                        }
+                    }
+                }
+            }
+
+            if (candidatesWithMbps.length > 0) {
+                if (preset === "mp4High") {
+                    // Sort descending: highest Mbps first
+                    candidatesWithMbps.sort(function (a, b) { return b.mbps - a.mbps; });
+                } else {
+                    // Sort ascending: lowest Mbps first
+                    candidatesWithMbps.sort(function (a, b) { return a.mbps - b.mbps; });
+                }
+                return {
+                    name: candidatesWithMbps[0].name,
+                    isAeBridge: false,
+                    mbps: candidatesWithMbps[0].mbps
+                };
+            }
+
+            if (candidatesWithoutMbps.length > 0) {
+                // Preserves pattern priority
+                candidatesWithoutMbps.sort(function (a, b) { return a.patternIndex - b.patternIndex; });
+                return {
+                    name: candidatesWithoutMbps[0].name,
+                    isAeBridge: false,
+                    mbps: null
+                };
+            }
+
+            return null;
+        }
+
+        // Other presets (prores, pngSequence, wav, etc.)
+        for (var p2 = 0; p2 < patterns.length; p2++) {
+            var regex2 = patterns[p2];
+            for (var t2 = 0; t2 < templates.length; t2++) {
+                if (regex2.test(templates[t2])) {
+                    return {
+                        name: templates[t2],
+                        isAeBridge: false,
+                        mbps: null
+                    };
                 }
             }
         }
@@ -121,7 +218,17 @@
             }
 
             var om = rqItem.outputModule(1);
-            matchedTemplate = findTemplateForPreset(om, preset);
+            var matchResult = findTemplateForPreset(om, preset);
+            matchedTemplate = matchResult ? matchResult.name : null;
+            var warningMsg = null;
+
+            if (preset === "mp4High" && matchResult && !matchResult.isAeBridge) {
+                if (matchResult.mbps === null || matchResult.mbps < 20) {
+                    warningMsg = "Render template '" + matchedTemplate + "' " +
+                        (matchResult.mbps !== null ? "is " + matchResult.mbps + " Mbps, which is under 20 Mbps" : "has no high bitrate specified") +
+                        ". For optimal broadcast quality, please create the 'AE Bridge H264 High' output module template. See docs/troubleshooting.md#8-creating-custom-h264-render-templates-ae-bridge-h264-high for step-by-step instructions.";
+                }
+            }
 
             if (matchedTemplate) {
                 try {
@@ -131,38 +238,33 @@
 
             om.file = targetFile;
 
+            var resultPayload = {
+                compId: comp.id,
+                compName: comp.name,
+                preset: preset,
+                matchedTemplate: matchedTemplate,
+                templateName: matchedTemplate,
+                mode: mode,
+                status: mode === "ame" ? "queued_in_ame" : "completed",
+                outputPath: cleanPath(targetFile.fsName),
+                workAreaOnly: workAreaOnly,
+                duration: workAreaOnly ? comp.workAreaDuration : comp.duration
+            };
+            if (warningMsg) {
+                resultPayload.warning = warningMsg;
+            }
+
             if (mode === "ame") {
                 app.project.renderQueue.queueInAME(true);
                 // Remove from AE queue since it was transferred to AME
                 rqItem.remove();
                 rqItem = null;
 
-                return {
-                    compId: comp.id,
-                    compName: comp.name,
-                    preset: preset,
-                    matchedTemplate: matchedTemplate,
-                    mode: "ame",
-                    status: "queued_in_ame",
-                    outputPath: cleanPath(targetFile.fsName),
-                    workAreaOnly: workAreaOnly,
-                    duration: workAreaOnly ? comp.workAreaDuration : comp.duration
-                };
+                return resultPayload;
             } else {
                 // Mode "ae" - synchronous in-AE render
                 app.project.renderQueue.render();
-
-                return {
-                    compId: comp.id,
-                    compName: comp.name,
-                    preset: preset,
-                    matchedTemplate: matchedTemplate,
-                    mode: "ae",
-                    status: "completed",
-                    outputPath: cleanPath(targetFile.fsName),
-                    workAreaOnly: workAreaOnly,
-                    duration: workAreaOnly ? comp.workAreaDuration : comp.duration
-                };
+                return resultPayload;
             }
         } finally {
             if (rqItem) {

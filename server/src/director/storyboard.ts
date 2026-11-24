@@ -1,8 +1,11 @@
+import fs from "fs";
+import path from "path";
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { callAE } from "../bridge.js";
 import { compRefSchema, toolSuccess, toolError } from "../tools/schemas.js";
 import { getActiveBrandDefaults } from "./brand.js";
+import { runBlenderSyncJob } from "../blender/jobs.js";
 
 export const transitionInSchema = z.object({
   type: z.string().describe("Transition effect type (crossDissolve, dipToWhite, dipToBlack, slideLeft, pushUp, zoomIn, linearWipe, glitchCut, whipPan)"),
@@ -25,7 +28,14 @@ export const sceneContentSchema = z.object({
   preset: z.string().optional().describe("Preset animation or graphic style"),
   style: z.string().optional().describe("Aesthetic theme variant (e.g. 'tech', 'bold', 'minimal', 'neon')"),
   colors: z.record(z.any()).optional().describe("Custom scene colors override"),
-  camera: z.record(z.any()).optional().describe("Camera motion or framing options")
+  camera: z.record(z.any()).optional().describe("Camera motion or framing options"),
+  spec: z.any().optional().describe("Blender SceneSpec specification for photoreal 3D rendering"),
+  material: z.string().optional().describe("Blender PBR material preset"),
+  lighting: z.string().optional().describe("Blender lighting preset"),
+  cameraMove: z.string().optional().describe("Blender camera move preset"),
+  colorFirstFrame: z.string().optional().describe("Internal rendered color pass first frame path"),
+  depthFirstFrame: z.string().optional().describe("Internal rendered depth pass first frame path"),
+  cameraData: z.any().optional().describe("Internal rendered camera tracking metadata")
 });
 
 export const sceneSchema = z.object({
@@ -40,7 +50,8 @@ export const sceneSchema = z.object({
     "logoReveal",
     "counter",
     "quote",
-    "endCard"
+    "endCard",
+    "blender3d"
   ]).describe("Scene category"),
   duration: z.number().min(0.2).max(300).describe("Scene duration in seconds"),
   transitionIn: transitionInSchema.optional().describe("Incoming transition from previous scene"),
@@ -149,6 +160,69 @@ export function registerStoryboardTools(server: McpServer): void {
     async (params) => {
       try {
         const brandKit = params.storyboard.brand !== false ? getActiveBrandDefaults() : null;
+
+        // Pre-render any blender3d photoreal scenes if present
+        for (const scene of params.storyboard.scenes) {
+          if (scene.type === "blender3d" && !scene.content.colorFirstFrame) {
+            let spec = scene.content.spec;
+            if (!spec) {
+              const fps = params.storyboard.frameRate || 30;
+              const framesCount = Math.round(scene.duration * fps);
+              spec = {
+                frames: { start: 1, end: framesCount, fps },
+                resolution: [params.storyboard.width || 1920, params.storyboard.height || 1080],
+                engine: "eevee",
+                quality: "final",
+                lighting: scene.content.lighting || "studioDramatic",
+                objects: [
+                  {
+                    id: "Hero_Object",
+                    kind: scene.content.text ? "text" : "primitive",
+                    params: scene.content.text ? { text: scene.content.text, extrude: 0.1 } : { primitive: "cube" },
+                    material: { preset: scene.content.material || "chrome" }
+                  },
+                  {
+                    id: "Studio_Floor",
+                    kind: "floor",
+                    params: { primitive: "cyclorama" }
+                  }
+                ],
+                camera: {
+                  lens: 50.0,
+                  sensorWidth: 36.0,
+                  move: scene.content.cameraMove || "heroReveal",
+                  curve: "smooth"
+                },
+                passes: ["depth"],
+                exportCamera: true
+              };
+            }
+            try {
+              const bJob = await runBlenderSyncJob(spec, "render", {}, 300000);
+              if (bJob && bJob.outputPaths) {
+                const colorDir = bJob.outputPaths.colorDir;
+                if (colorDir && fs.existsSync(colorDir)) {
+                  const cFiles = fs.readdirSync(colorDir).filter((f) => /\.(png|exr)$/i.test(f)).sort();
+                  if (cFiles.length > 0) {
+                    scene.content.colorFirstFrame = path.join(colorDir, cFiles[0]).replace(/\\/g, "/");
+                  }
+                }
+                const depthDir = bJob.outputPaths.depthDir;
+                if (depthDir && fs.existsSync(depthDir)) {
+                  const dFiles = fs.readdirSync(depthDir).filter((f) => /\.(png|exr)$/i.test(f)).sort();
+                  if (dFiles.length > 0) {
+                    scene.content.depthFirstFrame = path.join(depthDir, dFiles[0]).replace(/\\/g, "/");
+                  }
+                }
+                if (bJob.outputPaths.cameraJson && fs.existsSync(bJob.outputPaths.cameraJson)) {
+                  scene.content.cameraData = JSON.parse(fs.readFileSync(bJob.outputPaths.cameraJson, "utf-8"));
+                }
+              }
+            } catch (eBld) {
+              console.warn("[ae-bridge] Warning rendering storyboard blender3d scene:", eBld);
+            }
+          }
+        }
 
         // Long operations up to 10 minutes timeout
         const result = await callAE(

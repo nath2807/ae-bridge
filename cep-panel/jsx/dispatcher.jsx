@@ -10,6 +10,7 @@
     }
 
     $.global.aeBridge = {
+        scriptFolder: scriptFolder,
         handlers: {
             ping: function (params) {
                 var proj = app.project;

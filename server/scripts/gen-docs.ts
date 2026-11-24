@@ -40,6 +40,8 @@ import { registerMotionTools } from "../src/tools/motion.js";
 import { registerStyleTools } from "../src/director/styles.js";
 import { registerFinishingTools } from "../src/tools/finishing.js";
 import { registerReferenceTools } from "../src/tools/reference.js";
+import { registerBlenderTools } from "../src/tools/blender.js";
+import { registerBlenderAETools } from "../src/tools/blenderAE.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -94,7 +96,9 @@ const CATEGORIES: Array<{ name: string; register: (s: any) => void }> = [
   { name: "Motion Language & Easing", register: registerMotionTools },
   { name: "Design Styles & Aesthetics", register: registerStyleTools },
   { name: "Finishing Pass & Compositing", register: registerFinishingTools },
-  { name: "Reference Matching & Palette", register: registerReferenceTools }
+  { name: "Reference Matching & Palette", register: registerReferenceTools },
+  { name: "Blender 3D Photoreal Engine", register: registerBlenderTools },
+  { name: "Blender AE Compositing & Sync", register: registerBlenderAETools }
 ];
 
 function generateDocs(): void {

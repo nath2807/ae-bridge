@@ -1,0 +1,9 @@
+GNU GENERAL PUBLIC LICENSE
+Version 3, 29 June 2007
+
+This component (the `/blender` directory) contains scripts and utilities that interface directly with the Blender Python API (bpy) and is licensed under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version (GPL-3.0-or-later).
+
+For the full terms and conditions of the GNU General Public License, please refer to:
+https://www.gnu.org/licenses/gpl-3.0.html
+
+SPDX-License-Identifier: GPL-3.0-or-later

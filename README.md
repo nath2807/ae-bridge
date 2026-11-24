@@ -45,6 +45,7 @@ flowchart TD
 
 ## Core Capabilities
 
+- **Photoreal Blender 3D Bridge:** Headless Blender 4.2+ / 5.x integration with GPU acceleration (Cycles OptiX/CUDA & EEVEE Next), 14 PBR materials (chrome, gold, glass, carbon fiber, holographic thin film), studio cyclorama lighting, physics simulations (rigid bodies, shatter, cloth reveals), procedural Geometry Nodes, camera tracking sync (`camera.json`), and multi-pass Z-depth compositing in After Effects.
 - **Executive Director Layer:** Declarative multi-scene storyboards, 12 pre-built video production recipes (`youtubeIntro`, `productLaunch`, `hypePromo`, `socialAd15s`, etc.), brand kit persistence, and milestone checkpoints.
 - **Visual Self-Review & Vision:** Live frame capture, multi-frame contact sheets composited with `sharp`, time-stamped visual progression inspection, and automated composition QA.
 - **Motion Graphics & Typography:** Kinetic text presets, text animators, broadcast-quality lower thirds, 3D extruded typography, and animated counters.
@@ -219,6 +220,8 @@ We welcome community contributions! Please review [CONTRIBUTING.md](CONTRIBUTING
 
 ## License & Disclaimer
 
-Distributed under the MIT License.
+The core AE Bridge repository, Node.js MCP server, tools, and CEP panel are licensed under the [MIT License](LICENSE).
 
-**Disclaimer:** This project is an independent open-source developer tool. It is not affiliated with, endorsed by, or sponsored by Adobe Inc. Adobe and After Effects are registered trademarks of Adobe Inc. in the United States and other countries.
+The `/blender` directory contains Python modules that link directly with the Blender Python API (`bpy`) and is licensed under the **GNU General Public License v3.0 or later (GPL-3.0-or-later)** in accordance with Blender's licensing requirements. See [blender/LICENSE](blender/LICENSE) for details.
+
+**Disclaimer:** This project is an independent open-source developer tool. It is not affiliated with, endorsed by, or sponsored by Adobe Inc. or the Blender Foundation. Adobe and After Effects are registered trademarks of Adobe Inc. Blender is a registered trademark of the Blender Foundation.

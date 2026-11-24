@@ -92,7 +92,22 @@
                 var sceneComp = null;
 
                 // Re-use existing JSX handlers by scene type
-                if ((sType === "title" || sType === "quote" || sType === "endCard") && h.ae_create_title_card) {
+                if (sType === "blender3d") {
+                    sceneComp = app.project.items.addComp(sceneCompName, width, height, 1, sDuration, frameRate);
+                    if (content.colorFirstFrame && h.ae_import_blender_render) {
+                        try {
+                            h.ae_import_blender_render({
+                                compRef: { compId: sceneComp.id },
+                                colorFirstFrame: content.colorFirstFrame,
+                                depthFirstFrame: content.depthFirstFrame,
+                                cameraData: content.cameraData,
+                                fps: frameRate,
+                                addDepthPass: content.addDepthPass !== false,
+                                syncCamera: content.syncCamera !== false
+                            });
+                        } catch (eBld) {}
+                    }
+                } else if ((sType === "title" || sType === "quote" || sType === "endCard") && h.ae_create_title_card) {
                     var cardRes = h.ae_create_title_card({
                         compName: sceneCompName,
                         width: width,

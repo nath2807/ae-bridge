@@ -37,6 +37,8 @@ import { registerMotionTools } from "./tools/motion.js";
 import { registerFinishingTools } from "./tools/finishing.js";
 import { registerReferenceTools } from "./tools/reference.js";
 import { registerStyleTools } from "./director/styles.js";
+import { registerBlenderTools } from "./tools/blender.js";
+import { registerBlenderAETools } from "./tools/blenderAE.js";
 import { registerPrompts } from "./prompts.js";
 
 export async function runServer(): Promise<void> {
@@ -86,6 +88,8 @@ export async function runServer(): Promise<void> {
     registerStyleTools(server);
     registerFinishingTools(server);
     registerReferenceTools(server);
+    registerBlenderTools(server);
+    registerBlenderAETools(server);
     registerPrompts(server);
 
     const transport = new StdioServerTransport();

@@ -1,6 +1,6 @@
 # AE Bridge Tools Reference
 
-Auto-generated reference documentation for all **150 MCP tools** provided by the AE Bridge server.
+Auto-generated reference documentation for all **165 MCP tools** provided by the AE Bridge server.
 
 ## Table of Contents
 
@@ -40,6 +40,8 @@ Auto-generated reference documentation for all **150 MCP tools** provided by the
 - [Design Styles & Aesthetics](#design-styles-aesthetics) (3 tools)
 - [Finishing Pass & Compositing](#finishing-pass-compositing) (2 tools)
 - [Reference Matching & Palette](#reference-matching-palette) (3 tools)
+- [Blender 3D Photoreal Engine](#blender-3d-photoreal-engine) (13 tools)
+- [Blender AE Compositing & Sync](#blender-ae-compositing-sync) (2 tools)
 
 ---
 
@@ -1748,6 +1750,163 @@ Analyze a reference image and author a new persistent style JSON in the /styles 
 |---|---|---|---|---|
 | `imagePath` | `string` | **Yes** | Absolute file path to the reference image | - |
 | `name` | `string` | **Yes** | Unique style identifier (e.g. 'cyberObsidian', 'sunsetWarmth') | - |
+
+---
+
+## Blender 3D Photoreal Engine
+
+### `blender_status`
+
+Inspect Blender executable detection, hardware GPU acceleration, active version, and asset folders.
+
+*No parameters required.*
+
+### `blender_set_path`
+
+Explicitly configure and persist the path to the Blender executable in ~/.ae-bridge/state.json.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `path` | `string` | **Yes** | Absolute file path to blender.exe (Windows) or blender (macOS/Linux) | - |
+
+### `blender_preview`
+
+Render an instant EEVEE GPU single frame preview at 960px width, returning the image directly to the agent for visual inspection.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `spec` | `object` | **Yes** | Scene specification to preview | - |
+| `frame` | `integer` | No | Frame number to render (defaults to start frame) | - |
+| `maxWidth` | `integer` | No | Maximum preview image width in pixels (default 960) | `960` |
+
+### `blender_render`
+
+Dispatch an asynchronous photoreal Blender 3D render job. Returns immediately with jobId for non-blocking monitoring.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `spec` | `object` | **Yes** | Complete SceneSpec definition | - |
+
+### `blender_job_status`
+
+Check live progress percentage, estimated frames, compute hardware, and output file paths for an active or finished Blender render job.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `jobId` | `string` | **Yes** | Unique job ID returned by blender_render | - |
+
+### `blender_cancel_job`
+
+Abort an in-progress Blender background rendering job and terminate its process.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `jobId` | `string` | **Yes** | Unique job ID to cancel | - |
+
+### `blender_save_blend`
+
+Build the 3D scene from a SceneSpec and save it as an editable .blend project file for manual user tweaking.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `spec` | `object` | **Yes** | Scene specification to serialize | - |
+| `path` | `string` | No | Destination file path for .blend project. If omitted, saved into render folder | - |
+
+### `blender_list_presets`
+
+List available PBR material shaders, studio lighting rigs, cinematic camera moves, physics simulations, and procedural Geometry Nodes presets.
+
+*No parameters required.*
+
+### `blender_3d_title`
+
+High-level generator: Produce a photoreal 3D title card animation with studio lighting, camera move, and seamless cyclorama floor.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `text` | `string` | **Yes** | Headline title text string | - |
+| `font` | `string` | No | Font family name (e.g. 'Montserrat', 'Inter', 'Cinzel') to search in system fonts | - |
+| `material` | `"chrome" | "gold" | "brushedAluminum" | "glass" | "frostedGlass" | "glossyPlastic" | "matteClay" | "ceramic" | "rubber" | "carbonFiber" | "holographic" | "neonEmission" | "liquidMetal" | "marble"` | No | PBR material preset ('chrome', 'gold', 'glass', etc.) | `chrome` |
+| `lighting` | `string` | No | Lighting preset ('studioDramatic', 'rimNeon', 'darkLuxury') | `studioDramatic` |
+| `cameraMove` | `"orbit" | "orbitHalf" | "pushIn" | "pullOut" | "craneUp" | "flyThrough" | "turntable" | "heroReveal" | "dollyZoom"` | No | Cinematic camera trajectory ('heroReveal', 'pushIn', 'orbit') | `heroReveal` |
+| `duration` | `number` | No | Duration in seconds (default 5s) | `5` |
+| `floor` | `boolean` | No | Whether to include infinite seamless studio cyclorama backdrop | `true` |
+| `perCharacter` | `boolean` | No | Whether to stagger drop individual characters kinetic style | `false` |
+
+### `blender_logo_reveal`
+
+High-level generator: Import an SVG vector logo, extrude to 3D, apply reflective PBR materials, and render with dynamic reveal animation.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `svgPath` | `string` | **Yes** | Absolute file path to the SVG vector file | - |
+| `material` | `"chrome" | "gold" | "brushedAluminum" | "glass" | "frostedGlass" | "glossyPlastic" | "matteClay" | "ceramic" | "rubber" | "carbonFiber" | "holographic" | "neonEmission" | "liquidMetal" | "marble"` | No | PBR material preset ('gold', 'chrome', 'liquidMetal') | `gold` |
+| `lighting` | `string` | No | Studio lighting rig | `studioDramatic` |
+| `style` | `"spinSettle" | "riseFromFloor" | "lightSweep"` | No | Logo reveal choreography style | `spinSettle` |
+| `duration` | `number` | No | Total duration in seconds | `4` |
+
+### `blender_product_shot`
+
+High-level generator: Import a 3D model (.glb/.gltf/.obj/.fbx) and render an Apple-style commercial turntable or floating orbit showcase.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `modelPath` | `string` | **Yes** | Absolute file path to 3D model file | - |
+| `style` | `"turntable" | "heroOrbit" | "floatingReveal"` | No | Showcase trajectory style | `heroOrbit` |
+| `background` | `"cyclorama" | "transparent"` | No | Background setting | `cyclorama` |
+| `lighting` | `string` | No | Lighting setup ('productWhite', 'studioDramatic', 'darkLuxury') | `productWhite` |
+| `duration` | `number` | No | Duration in seconds | `5` |
+
+### `blender_physics_shot`
+
+High-level generator: Simulate dynamic physical interactions (dropAndBounce, shatter, clothReveal, scatterFall, windFlag) and render.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `preset` | `"dropAndBounce" | "shatter" | "clothReveal" | "windFlag" | "scatterFall"` | **Yes** | Physical simulation preset | - |
+| `text` | `string` | No | Optional text for shatter or drop target | - |
+| `modelPath` | `string` | No | Optional 3D model path to simulate | - |
+| `material` | `"chrome" | "gold" | "brushedAluminum" | "glass" | "frostedGlass" | "glossyPlastic" | "matteClay" | "ceramic" | "rubber" | "carbonFiber" | "holographic" | "neonEmission" | "liquidMetal" | "marble"` | No | PBR material preset | `chrome` |
+| `duration` | `number` | No | Duration in seconds | `4` |
+
+### `blender_hdri_fetch`
+
+Download CC0 HDRIs from the public Poly Haven API into ~/.ae-bridge/hdri (or list available local and recommended HDRIs).
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `name` | `string` | No | Poly Haven HDRI identifier (e.g. 'studio_small_08', 'aerodynamics_workshop', 'modern_buildings_2'). If omitted, lists available local and popular HDRIs | - |
+
+---
+
+## Blender AE Compositing & Sync
+
+### `ae_import_blender_render`
+
+Import an exported Blender 3D render sequence (color pass + optional depth pass) into After Effects, sync camera trajectory keyframes from camera.json, and bind 3D tracking nulls.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `jobId` | `string` | No | Blender job ID to import from | - |
+| `folder` | `string` | No | Direct output directory containing color/ and camera.json | - |
+| `compRef` | `object` | No | Reference to a composition (by ID or name). If omitted, the active composition is used. | - |
+| `fps` | `number` | No | Playback frame rate conforming | - |
+| `addDepthPass` | `boolean` | No | Whether to import and link the normalized Z-depth pass | `true` |
+| `syncCamera` | `boolean` | No | Whether to construct an AE 3D camera matching the Blender lens and trajectory | `true` |
+| `startTime` | `number` | No | In-point start time in comp (seconds) | `0` |
+
+### `ae_depth_effects`
+
+Apply cinematic atmospheric depth effects (depth of field optical lens blur, distance fog, or depth mapping) driven by a Blender Z-depth pass layer.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `compRef` | `object` | No | Reference to a composition (by ID or name). If omitted, the active composition is used. | - |
+| `depthLayerRef` | `object` | **Yes** | Reference to the imported Blender Depth Pass layer | - |
+| `targetLayerRef` | `object` | No | Target layer to receive optical lens blur (defaults to color pass layer) | - |
+| `effects` | `array` | No | Depth effects to configure | `dof` |
+| `dofRadius` | `number` | No | Maximum optical blur radius for Camera Lens Blur | `15` |
+| `fogColor` | `array | string` | No | Atmospheric fog tint color | - |
 
 ---
 

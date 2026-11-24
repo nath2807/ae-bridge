@@ -246,8 +246,25 @@
 
     // 7. ae_reload_tools
     function reloadTools(params) {
-        var thisFile = File($.fileName);
-        var scriptFolder = thisFile.parent.parent; // parent is tools/, parent.parent is jsx/
+        var scriptFolder = null;
+        if ($.global.aeBridge && $.global.aeBridge.scriptFolder) {
+            scriptFolder = $.global.aeBridge.scriptFolder;
+        } else if ($.fileName) {
+            var f = File($.fileName);
+            if (f && f.parent) {
+                scriptFolder = f.parent.name === "tools" ? f.parent.parent : f.parent;
+            }
+        }
+        if (!scriptFolder || !scriptFolder.exists) {
+            var appDataExt = Folder(Folder.userData.fsName + "/Adobe/CEP/extensions/com.aebridge/jsx");
+            if (appDataExt.exists) {
+                scriptFolder = appDataExt;
+            }
+        }
+        if (!scriptFolder || !scriptFolder.exists) {
+            throw new Error("Could not determine jsx folder path for ae_reload_tools.");
+        }
+        var reloadedFiles = [];
 
         var helpersFile = File(scriptFolder.fsName + "/lib/helpers.jsx");
         if (helpersFile.exists) {
@@ -271,7 +288,6 @@
         }
 
         var toolsFolder = Folder(scriptFolder.fsName + "/tools");
-        var reloadedFiles = [];
 
         if (toolsFolder.exists) {
             var files = toolsFolder.getFiles("*.jsx");

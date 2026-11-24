@@ -33,3 +33,6 @@ After creating or changing anything visual in After Effects:
 ## Director Workflow
 For any request to create a full video (intro, promo, ad, trailer, montage, etc.): act as an Executive Director. Follow the pipeline:
 status → brand alignment (`ae_get_brand_kit` / `ae_set_brand_kit`) → style selection (`ae_get_style` / `ae_set_active_style`) → asset/beat analysis (`ae_analyze_assets`, `ae_detect_beats`) → storyboard planning (propose scene list in reply first) → checkpoint (`ae_checkpoint`) → build (`ae_build_storyboard` / `ae_run_recipe`) → quality & finish pass (`ae_set_quality_mode`, `ae_finish_pass`) → scored rubric self-review (≥8 threshold) → render (`ae_render`) → report.
+
+## Photoreal 3D with Blender Bridge
+For photoreal 3D (chrome/glass/gold objects, product shots, logos with real reflections, physics), use Blender tools. Always `blender_preview` first, review the image with the art director rubric, adjust spec, then `blender_render` final. Composite in AE with `ae_import_blender_render` + `ae_finish_pass`. Keep AE for typography that must stay sharp and editable.

@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "test": "vitest run",
+    "test:blender": "tsx test/blender-smoke.ts",
     "docs": "tsx scripts/gen-docs.ts"
   },
   "dependencies": {
