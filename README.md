@@ -131,6 +131,14 @@ Generate and copy your client's configuration:
 node server/dist/cli.js config --client antigravity
 ```
 
+### Uninstall
+Remove the registered CEP panel and restore the debug-mode settings recorded before installation:
+```bash
+node server/dist/cli.js uninstall
+```
+
+For installations made before the CLI recorded prior debug settings, uninstall removes the CEP debug flags.
+
 ---
 
 ## MCP Client Configuration
