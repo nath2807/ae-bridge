@@ -1,3 +1,4 @@
+import fs from "fs";
 import { WebSocket } from "ws";
 
 export interface MockComp {
@@ -245,6 +246,57 @@ export class MockAEPanel {
 
       case "executeScript":
         return params.code ? `Mock execution of: ${params.code.slice(0, 30)}` : "ok";
+
+      case "batch":
+      case "ae_batch": {
+        const calls = params.calls || [];
+        const results = [];
+        let successful = 0;
+        for (let i = 0; i < calls.length; i++) {
+          const item = calls[i];
+          const methodName = item.tool || item.method;
+          const itemArgs = item.args || item.params || {};
+          try {
+            const res = this.executeMockMethod(methodName, itemArgs);
+            results.push({ tool: methodName, ok: true, result: res });
+            successful++;
+          } catch (err: any) {
+            results.push({ tool: methodName, ok: false, error: err.message });
+          }
+        }
+        return {
+          total: results.length,
+          successful,
+          failed: results.length - successful,
+          results
+        };
+      }
+
+      case "preview_frame":
+      case "ae_preview_frame": {
+        if (params.outputPath) {
+          const dummyPng = Buffer.from(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+            "base64"
+          );
+          fs.writeFileSync(params.outputPath, dummyPng);
+        }
+        return {
+          outputPath: params.outputPath || "/tmp/preview.png",
+          width: 1920,
+          height: 1080,
+          time: params.time || 0
+        };
+      }
+
+      case "qa_check":
+      case "ae_qa_check":
+        return {
+          passed: true,
+          score: 95,
+          issues: [],
+          checkedTimes: [0, 2, 4, 6, 8]
+        };
 
       default:
         // Generic fallback returning mock success for all other ae_* tools

@@ -9,51 +9,19 @@ import { acquireHubOrProxy, removeLockFile } from "./hub/lock.js";
 import { startHubIpcServer, stopHubIpcServer, startProxyClient, stopProxyClient, callHubProxy } from "./hub/ipc.js";
 import { startHttpBridge } from "./hub/http.js";
 
-import { registerCoreTools } from "./tools/core.js";
-import { registerCompTools } from "./tools/comps.js";
-import { registerLayerTools } from "./tools/layers.js";
-import { registerAnimationTools } from "./tools/animation.js";
-import { registerEffectTools } from "./tools/effects.js";
-import { registerTitleTools } from "./tools/titles.js";
-import { registerFootageTools } from "./tools/footage.js";
-import { registerEditingTools } from "./tools/editing.js";
-import { registerTransitionTools } from "./tools/transitions.js";
-import { registerTimeTools } from "./tools/time.js";
-import { registerAudioTools } from "./tools/audio.js";
-import { registerColorTools } from "./tools/color.js";
-import { registerScene3dTools } from "./tools/scene3d.js";
-import { registerCameraTools } from "./tools/camera.js";
-import { registerLightingTools } from "./tools/lighting.js";
-import { registerSceneTools } from "./tools/scenes.js";
-import { registerLookTools } from "./tools/looks.js";
-import { registerParticleTools } from "./tools/particles.js";
-import { registerBackgroundTools } from "./tools/backgrounds.js";
-import { registerDistortTools } from "./tools/distort.js";
-import { registerRigTools } from "./tools/rigs.js";
-import { registerPreviewTools, cleanOldPreviews } from "./tools/preview.js";
-import { registerQaTools } from "./tools/qa.js";
-import { registerProjectTools } from "./tools/project.js";
-import { registerRenderTools } from "./tools/render.js";
-import { registerFormatTools } from "./tools/formats.js";
-import { registerTemplateTools } from "./tools/templates.js";
-import { registerAnalysisTools } from "./tools/analysis.js";
-import { registerBrandTools } from "./director/brand.js";
-import { registerStoryboardTools } from "./director/storyboard.js";
-import { registerRecipeTools } from "./director/recipes.js";
-import { registerQualityTools } from "./tools/quality.js";
-import { registerMotionTools } from "./tools/motion.js";
-import { registerFinishingTools } from "./tools/finishing.js";
-import { registerReferenceTools } from "./tools/reference.js";
-import { registerStyleTools } from "./director/styles.js";
-import { registerBlenderTools } from "./tools/blender.js";
-import { registerBlenderAETools } from "./tools/blenderAE.js";
+import { TOOL_MODULES } from "./tools/registry.js";
+import { getActiveProfile, createProfileFilter, ProfileName } from "./tools/profiles.js";
+import { cleanOldPreviews } from "./tools/preview.js";
 import { registerPrompts } from "./prompts.js";
 
 export { stopBridge } from "./bridge.js";
+export { getActiveProfile, createProfileFilter, isToolAllowedInProfile } from "./tools/profiles.js";
+export { TOOL_MODULES, getToolCatalog } from "./tools/registry.js";
 
 export interface ServerRunOptions {
     httpPort?: number;
     skipHubLock?: boolean;
+    profile?: ProfileName;
 }
 
 export async function runServer(options?: ServerRunOptions): Promise<void> {
@@ -93,44 +61,13 @@ export async function runServer(options?: ServerRunOptions): Promise<void> {
         }
     }
 
-    registerCoreTools(server);
-    registerCompTools(server);
-    registerLayerTools(server);
-    registerAnimationTools(server);
-    registerEffectTools(server);
-    registerTitleTools(server);
-    registerFootageTools(server);
-    registerEditingTools(server);
-    registerTransitionTools(server);
-    registerTimeTools(server);
-    registerAudioTools(server);
-    registerColorTools(server);
-    registerScene3dTools(server);
-    registerCameraTools(server);
-    registerLightingTools(server);
-    registerSceneTools(server);
-    registerLookTools(server);
-    registerParticleTools(server);
-    registerBackgroundTools(server);
-    registerDistortTools(server);
-    registerRigTools(server);
-    registerPreviewTools(server);
-    registerQaTools(server);
-    registerProjectTools(server);
-    registerRenderTools(server);
-    registerFormatTools(server);
-    registerTemplateTools(server);
-    registerAnalysisTools(server);
-    registerBrandTools(server);
-    registerStoryboardTools(server);
-    registerRecipeTools(server);
-    registerQualityTools(server);
-    registerMotionTools(server);
-    registerStyleTools(server);
-    registerFinishingTools(server);
-    registerReferenceTools(server);
-    registerBlenderTools(server);
-    registerBlenderAETools(server);
+    const activeProfile: ProfileName = options?.profile || getActiveProfile();
+    console.error(`[ae-bridge] Active tool profile: '${activeProfile}'`);
+    const filteredServer = createProfileFilter(server, activeProfile);
+
+    for (const mod of TOOL_MODULES) {
+        mod.register(filteredServer);
+    }
     registerPrompts(server);
 
     const transport = new StdioServerTransport();

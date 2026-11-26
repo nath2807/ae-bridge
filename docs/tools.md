@@ -1,10 +1,10 @@
 # AE Bridge Tools Reference
 
-Auto-generated reference documentation for all **165 MCP tools** provided by the AE Bridge server.
+Auto-generated reference documentation for all **169 MCP tools** provided by the AE Bridge server.
 
 ## Table of Contents
 
-- [Core & Health](#core-health) (3 tools)
+- [Core & Health](#core-health) (7 tools)
 - [Compositions](#compositions) (8 tools)
 - [Layers & Transform](#layers-transform) (12 tools)
 - [Animation & Keyframes](#animation-keyframes) (7 tools)
@@ -66,6 +66,37 @@ LAST RESORT: run raw ExtendScript only when no dedicated ae_ tool can do the job
 | Parameter | Type | Required | Description | Default |
 |---|---|---|---|---|
 | `code` | `string` | **Yes** | ExtendScript code to execute in After Effects | - |
+
+### `ae_bridge_status`
+
+Inspect the health, connection status, round-trip latency, queue depth, and memory telemetry of the AE Bridge connection.
+
+*No parameters required.*
+
+### `ae_batch`
+
+Execute multiple AE Bridge tool calls sequentially in a single round trip wrapped inside an undo group. Reduces latency and network overhead for multi-step operations.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `calls` | `array` | **Yes** | Ordered array of tool calls to execute sequentially | - |
+
+### `ae_search_tools`
+
+Search all available AE Bridge tools by keyword, tag, or category to discover tool capabilities, parameters, and profile assignments.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `query` | `string` | No | Keyword to search in tool name and description | - |
+| `tag` | `string` | No | Optional tag filter (e.g. 'comps', 'layers', 'animation', 'render', 'blender', 'qa') | - |
+| `category` | `string` | No | Optional category name filter | - |
+| `limit` | `integer` | No | Maximum number of results to return (default 20) | `20` |
+
+### `ae_list_profiles`
+
+List active and available tool profiles ('minimal', 'standard', 'blender', 'full') with their descriptions, active status, and tool counts. Profiles reduce token overhead by exposing only the tools relevant to the current task.
+
+*No parameters required.*
 
 ---
 
@@ -1301,6 +1332,7 @@ Run an automated quality assurance inspection across a composition: checks for t
 |---|---|---|---|---|
 | `compRef` | `object` | No | Reference to a composition (by ID or name). If omitted, the active composition is used. | - |
 | `checkTimes` | `integer | array` | No | Sample times for layout and collision checks (defaults to 5 evenly spaced sample points) | - |
+| `includePreview` | `boolean` | No | If true, captures a rendered preview frame of the composition and includes it as an MCP image payload alongside the QA report | - |
 
 ### `ae_timeline_summary`
 

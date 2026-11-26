@@ -44,7 +44,7 @@
             },
 
             executeScript: function (params) {
-                if (!params || typeof params.code !== "string") {
+                if (!params || !params.code || typeof params.code !== "string") {
                     throw new Error("Missing code parameter");
                 }
                 app.beginUndoGroup("AE Bridge Script");
@@ -54,6 +54,72 @@
                 } finally {
                     app.endUndoGroup();
                 }
+            },
+
+            batch: function (params) {
+                if (!params || !params.calls || !(params.calls instanceof Array)) {
+                    throw new Error("Batch parameter must contain a 'calls' array.");
+                }
+                var calls = params.calls;
+                var results = [];
+                var successful = 0;
+
+                app.beginUndoGroup("AE Bridge Batch");
+                try {
+                    for (var i = 0; i < calls.length; i++) {
+                        var item = calls[i];
+                        if (!item) continue;
+                        var methodName = item.tool || item.method;
+                        var itemArgs = item.args || item.params || {};
+
+                        if (!methodName || typeof methodName !== "string") {
+                            results.push({
+                                ok: false,
+                                error: "Call at index " + i + " is missing tool name."
+                            });
+                            continue;
+                        }
+
+                        if (!$.global.aeBridge.handlers.hasOwnProperty(methodName)) {
+                            results.push({
+                                tool: methodName,
+                                ok: false,
+                                error: "Unknown method: " + methodName
+                            });
+                            continue;
+                        }
+
+                        try {
+                            var res = $.global.aeBridge.handlers[methodName](itemArgs);
+                            results.push({
+                                tool: methodName,
+                                ok: true,
+                                result: res
+                            });
+                            successful++;
+                        } catch (err) {
+                            results.push({
+                                tool: methodName,
+                                ok: false,
+                                error: err ? (err.message || err.toString()) : "Execution error",
+                                line: (err && typeof err.line !== "undefined") ? err.line : null
+                            });
+                        }
+                    }
+                } finally {
+                    app.endUndoGroup();
+                }
+
+                return {
+                    total: results.length,
+                    successful: successful,
+                    failed: results.length - successful,
+                    results: results
+                };
+            },
+
+            ae_batch: function (params) {
+                return this.batch(params);
             }
         },
 

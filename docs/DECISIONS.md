@@ -118,4 +118,36 @@ This document records architectural decisions, evaluated alternatives, and ratio
   - *Blind file overwrite*: High risk of data loss for user's existing MCP servers.
 - **Reason**: Non-destructive, user-friendly client installation.
 
+---
+
+## DEC-012: Dynamic Tool Profiles and Meta-Tool Pass-Through
+- **Date**: 2026-11-26
+- **Context**: Exposing 169 tools simultaneously consumes substantial LLM context tokens (often 25k+ tokens just for system tool schemas). Many workflows only require a subset.
+- **Decision**: Implement dynamic tool filtering via `AE_BRIDGE_PROFILE` (with four tiers: `minimal` ~24 tools, `standard` ~85 tools as default, `blender` ~38 tools, and `full` all 169+ tools). All profiles retain pass-through access to meta-tools (`ae_search_tools`, `ae_list_profiles`, `ae_bridge_status`, `ae_batch`), and `ae_search_tools` searches the complete catalog regardless of the active profile.
+- **Alternatives Considered**:
+  - *Static build-time profiles*: Separate binaries or packages for each profile. Unwieldy and inflexible.
+  - *Always exposing all 169 tools*: Excess token overhead for lightweight tasks.
+- **Reason**: Balances low token usage for standard tasks with instant discovery and full power when needed.
+
+---
+
+## DEC-013: Atomic Multi-Call Batch Execution (`ae_batch`)
+- **Date**: 2026-11-26
+- **Context**: Multi-step operations (e.g. creating comp, adding solid, adding 3 text layers, applying camera and keyframes) require dozens of round-trips over loopback WebSocket, each creating its own undo entry in After Effects.
+- **Decision**: Provide `ae_batch` accepting an array of tool calls. ExtendScript executes each call sequentially within a single `app.beginUndoGroup("AE Bridge Batch")`, returning an array of individual execution results.
+- **Alternatives Considered**:
+  - *Client-side sequential iteration*: High network latency and multiple undo steps cluttering AE timeline.
+- **Reason**: Dramatic latency reduction and clean single-step undo history for AI agents.
+
+---
+
+## DEC-014: MCP Image Payload in Quality Assurance (`ae_qa_check`)
+- **Date**: 2026-11-26
+- **Context**: Automated QA checks report metrics textually, but multimodal AI models benefit significantly from directly seeing the composition layout, spacing, and visual contrast.
+- **Decision**: Add optional `includePreview?: boolean` to `ae_qa_check`. When true, After Effects renders a preview frame or contact sheet, and the MCP server returns an MCP image payload (`type: "image"`, base64 PNG) alongside the structured textual QA report. If preview capture fails, it falls back gracefully with a warning without failing the QA report.
+- **Alternatives Considered**:
+  - *Require separate call to `ae_preview_frame`*: Requires two round-trips and extra prompt orchestration.
+- **Reason**: Unified visual and textual quality assurance in a single tool call.
+
+
 

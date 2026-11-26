@@ -50,3 +50,6 @@ jobs:
 
       - name: Verify Docs Generation
         run: npm --prefix server run docs
+
+      - name: Check Docs Sync
+        run: git diff --exit-code docs/tools.md

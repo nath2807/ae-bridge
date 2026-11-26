@@ -80,3 +80,20 @@
 - **Blockers**: None.
 
 ---
+
+## Phase 5 - Tool Surface Quality & Profiles
+- **Timestamp**: 2026-11-26T20:28:00+05:30
+- **Summary**:
+  - Built dynamic tool profile filtering via `AE_BRIDGE_PROFILE` (`server/src/tools/profiles.ts`) with four profiles: `minimal` (~24 tools), `standard` (~85 tools, default), `blender` (~38 tools), and `full` (all 169 tools).
+  - Added `ae_list_profiles` and `ae_search_tools` enabling AI agents to query tool capabilities, parameters, and profile assignments without loading 169 tool schemas into context.
+  - Implemented `ae_batch` for sequential multi-tool execution in a single round-trip wrapped in a single ExtendScript undo group (`app.beginUndoGroup("AE Bridge Batch")`).
+  - Added ExtendScript batch handler in `cep-panel/jsx/dispatcher.jsx`.
+  - Added optional `includePreview` parameter in `ae_qa_check` (`server/src/tools/qa.ts`) returning base64 PNG MCP image payloads alongside the structured textual QA report with graceful fallback.
+  - Centralized tool module catalog in `server/src/tools/registry.ts`, eliminating duplicate imports in `scripts/gen-docs.ts`.
+  - Regenerated `docs/tools.md` (now documenting all 169 tools) and added CI verification step in `.github/workflows/ci.yml` (`git diff --exit-code docs/tools.md`).
+  - Added dedicated test suite `server/test/phase5-profiles.test.ts`.
+  - Logged decisions DEC-012, DEC-013, and DEC-014 in `docs/DECISIONS.md`.
+- **Test Results**: 16 vitest files (78 tests) + 6 Python tests passing.
+- **Blockers**: None.
+
+---

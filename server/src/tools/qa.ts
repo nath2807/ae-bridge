@@ -1,7 +1,10 @@
+import fs from "fs";
+import path from "path";
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { callAE } from "../bridge.js";
 import { compRefSchema, toolSuccess, toolError } from "./schemas.js";
+import { getPreviewDir, waitForStableFile } from "./preview.js";
 
 export function registerQaTools(server: McpServer): void {
   // 1. ae_get_layer_bounds
@@ -31,11 +34,46 @@ export function registerQaTools(server: McpServer): void {
       checkTimes: z.union([
         z.number().int().min(2).max(30).describe("Number of evenly spaced sample times to evaluate across duration (default 5)"),
         z.array(z.number()).describe("Explicit array of time points in seconds to check")
-      ]).optional().describe("Sample times for layout and collision checks (defaults to 5 evenly spaced sample points)")
+      ]).optional().describe("Sample times for layout and collision checks (defaults to 5 evenly spaced sample points)"),
+      includePreview: z.boolean().optional().describe("If true, captures a rendered preview frame of the composition and includes it as an MCP image payload alongside the QA report")
     },
     async (params) => {
       try {
-        const result = await callAE("ae_qa_check", params);
+        const { includePreview, ...qaParams } = params;
+        const result = await callAE("ae_qa_check", qaParams);
+
+        if (includePreview) {
+          try {
+            const previewDir = getPreviewDir();
+            const randId = Math.random().toString(36).slice(2, 9);
+            const outPath = path.join(previewDir, `qa_preview_${Date.now()}_${randId}.png`).replace(/\\/g, "/");
+            await callAE("ae_preview_frame", {
+              compRef: params.compRef,
+              outputPath: outPath
+            });
+            await waitForStableFile(outPath, 5000);
+            const imgBuf = await fs.promises.readFile(outPath);
+            return {
+              content: [
+                {
+                  type: "text" as const,
+                  text: typeof result === "string" ? result : JSON.stringify(result, null, 2)
+                },
+                {
+                  type: "image" as const,
+                  data: imgBuf.toString("base64"),
+                  mimeType: "image/png"
+                }
+              ]
+            };
+          } catch (prevErr) {
+            const reportWithWarning = typeof result === "object" && result !== null
+              ? { ...result, previewWarning: `Preview capture skipped: ${(prevErr as Error).message}` }
+              : result;
+            return toolSuccess(reportWithWarning);
+          }
+        }
+
         return toolSuccess(result);
       } catch (err) {
         return toolError(err);
