@@ -256,6 +256,17 @@
         return String(p).replace(/\\/g, "/");
     }
 
+    function quoteExpressionString(value) {
+        return '"' + String(value)
+            .replace(/\\/g, "\\\\")
+            .replace(/"/g, '\\"')
+            .replace(/\r/g, "\\r")
+            .replace(/\n/g, "\\n")
+            .replace(/\t/g, "\\t")
+            .replace(/\u2028/g, "\\u2028")
+            .replace(/\u2029/g, "\\u2029") + '"';
+    }
+
     function findItem(ref) {
         if (!app.project) {
             throw new Error("No active After Effects project found.");
@@ -317,6 +328,7 @@
     $.global.findItem = findItem;
     $.global.findFolder = findFolder;
     $.global.cleanPath = cleanPath;
+    $.global.quoteExpressionString = quoteExpressionString;
     $.global.toColor = toColor;
     $.global.layerSummary = layerSummary;
     $.global.getLayerType = getLayerType;
@@ -331,6 +343,7 @@
         $.global.aeBridge.findItem = findItem;
         $.global.aeBridge.findFolder = findFolder;
         $.global.aeBridge.cleanPath = cleanPath;
+        $.global.aeBridge.quoteExpressionString = quoteExpressionString;
         $.global.aeBridge.toColor = toColor;
         $.global.aeBridge.layerSummary = layerSummary;
         $.global.aeBridge.getLayerType = getLayerType;

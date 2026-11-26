@@ -348,12 +348,12 @@
                         var posY = findChild(producer, "Position Y");
                         if (posX && leader) {
                             try {
-                                posX.expression = 'var tgt = thisComp.layer("' + leader.name + '"); var p = tgt.toComp(tgt.anchorPoint); (p[0] - thisComp.width/2) / thisComp.width;';
+                                posX.expression = "var tgt = thisComp.layer(" + quoteExpressionString(leader.name) + "); var p = tgt.toComp(tgt.anchorPoint); (p[0] - thisComp.width/2) / thisComp.width;";
                             } catch (eX) {}
                         }
                         if (posY && leader) {
                             try {
-                                posY.expression = 'var tgt = thisComp.layer("' + leader.name + '"); var p = tgt.toComp(tgt.anchorPoint); (p[1] - thisComp.height/2) / thisComp.width;';
+                                posY.expression = "var tgt = thisComp.layer(" + quoteExpressionString(leader.name) + "); var p = tgt.toComp(tgt.anchorPoint); (p[1] - thisComp.height/2) / thisComp.width;";
                             } catch (eY) {}
                         }
                     }

@@ -49,7 +49,7 @@
     // Load ExtendScript dispatcher
     var extPath = csInterface.getSystemPath(SystemPath.EXTENSION);
     var cleanPath = extPath.replace(/\\/g, "/") + "/jsx/dispatcher.jsx";
-    csInterface.evalScript('$.evalFile(File("' + cleanPath + '"))', function (res) {
+    csInterface.evalScript("$.evalFile(File(" + JSON.stringify(cleanPath) + "))", function (res) {
         addLog("Loaded dispatcher: " + cleanPath);
     });
 
@@ -125,7 +125,10 @@
 
                 addLog("Command: " + method);
 
-                var callStr = 'aeBridge.dispatch("' + method + '","' + encodeURIComponent(JSON.stringify(params)) + '")';
+                var callStr = "aeBridge.dispatch(" +
+                    JSON.stringify(method) + "," +
+                    JSON.stringify(encodeURIComponent(JSON.stringify(params))) +
+                    ")";
 
                 csInterface.evalScript(callStr, function (rawResult) {
                     if (rawResult === "EvalScript error." || !rawResult) {
