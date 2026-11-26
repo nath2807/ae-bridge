@@ -1,6 +1,10 @@
+import fs from "fs";
+import { fileURLToPath } from "url";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { startBridge } from "./bridge.js";
+import { startBridge, stopBridge } from "./bridge.js";
+import { killAllBlenderJobs } from "./blender/jobs.js";
+import { VERSION } from "./utils/paths.js";
 import { registerCoreTools } from "./tools/core.js";
 import { registerCompTools } from "./tools/comps.js";
 import { registerLayerTools } from "./tools/layers.js";
@@ -41,14 +45,16 @@ import { registerBlenderTools } from "./tools/blender.js";
 import { registerBlenderAETools } from "./tools/blenderAE.js";
 import { registerPrompts } from "./prompts.js";
 
+export { stopBridge } from "./bridge.js";
+
 export async function runServer(): Promise<void> {
-    console.error("[ae-bridge] Starting server v1.2.0...");
+    console.error(`[ae-bridge] Starting server v${VERSION}...`);
 
     await cleanOldPreviews();
 
     const server = new McpServer({
         name: "ae-bridge",
-        version: "1.2.0"
+        version: VERSION
     });
 
     await startBridge();
@@ -98,10 +104,37 @@ export async function runServer(): Promise<void> {
     console.error("[ae-bridge] Server ready and connected via stdio transport.");
 }
 
-// Auto-run if executed directly as entrypoint
-if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/"))) {
-    runServer().catch((err) => {
-        console.error("[ae-bridge] Fatal startup error:", err);
-        process.exit(1);
-    });
+// Graceful shutdown handling
+let shuttingDown = false;
+async function handleShutdown(signal: string): Promise<void> {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.error(`[ae-bridge] Received ${signal}, shutting down gracefully...`);
+    try {
+        killAllBlenderJobs();
+        await stopBridge();
+    } catch (err) {
+        console.error("[ae-bridge] Error during shutdown:", err);
+    }
+    process.exit(0);
+}
+
+process.on("SIGINT", () => handleShutdown("SIGINT"));
+process.on("SIGTERM", () => handleShutdown("SIGTERM"));
+if (process.stdin.isTTY === false) {
+    process.stdin.on("close", () => handleShutdown("stdin close"));
+}
+
+// Auto-run if executed directly as entrypoint (safely handling spaces in paths)
+if (process.argv[1]) {
+    try {
+        const entryFile = fs.realpathSync(process.argv[1]);
+        const currentFile = fs.realpathSync(fileURLToPath(import.meta.url));
+        if (entryFile === currentFile) {
+            runServer().catch((err) => {
+                console.error("[ae-bridge] Fatal startup error:", err);
+                process.exit(1);
+            });
+        }
+    } catch {}
 }

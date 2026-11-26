@@ -14,16 +14,24 @@ foreach ($ver in $csxsList) {
     Write-Host "Set PlayerDebugMode = 1 in $regPath" -ForegroundColor Green
 }
 
-# 2. Check and run fetch-deps.ps1 if CSInterface.js is missing
+# 2. Check and run fetch-deps.ps1 if CSInterface.js is missing or corrupt
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = (Resolve-Path "$scriptDir\..").Path
 $csInterfacePath = Join-Path $repoRoot "cep-panel\lib\CSInterface.js"
 
-if (-not (Test-Path $csInterfacePath)) {
-    Write-Host "CSInterface.js missing. Running fetch-deps.ps1..." -ForegroundColor Yellow
+$expectedHash = "d940cbc991553b4885d1b3b04d99c17f448041a738a12cc0b24ce688ace2d263"
+$needsFetch = $true
+if (Test-Path $csInterfacePath) {
+    $currentHash = (Get-FileHash -Path $csInterfacePath -Algorithm SHA256).Hash.ToLower()
+    if ($currentHash -eq $expectedHash) {
+        $needsFetch = $false
+        Write-Host "CSInterface.js verified present and intact in cep-panel\lib\" -ForegroundColor Green
+    }
+}
+
+if ($needsFetch) {
+    Write-Host "Fetching verified CSInterface.js..." -ForegroundColor Yellow
     & "$scriptDir\fetch-deps.ps1"
-} else {
-    Write-Host "CSInterface.js found in cep-panel\lib\" -ForegroundColor Green
 }
 
 # 3. Create directory junction to CEP extensions folder
@@ -32,11 +40,24 @@ if (-not (Test-Path $cepExtFolder)) {
     New-Item -ItemType Directory -Force -Path $cepExtFolder | Out-Null
 }
 
-$targetJunction = Join-Path $cepExtFolder "ae-bridge"
+# 3a. Migration: Clean legacy 'ae-bridge' junction if present
+$legacyFolder = Join-Path $cepExtFolder "ae-bridge"
+if (Test-Path $legacyFolder) {
+    Write-Host "Cleaning up legacy extension at $legacyFolder..." -ForegroundColor Yellow
+    $item = Get-Item $legacyFolder
+    if ($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
+        [System.IO.Directory]::Delete($legacyFolder)
+    } else {
+        Remove-Item -Recurse -Force -Path $legacyFolder
+    }
+}
+
+# 3b. Canonical 'com.aebridge' junction
+$targetJunction = Join-Path $cepExtFolder "com.aebridge"
 $sourcePanel = Join-Path $repoRoot "cep-panel"
 
 if (Test-Path $targetJunction) {
-    Write-Host "Removing existing extension at $targetJunction..." -ForegroundColor Yellow
+    Write-Host "Updating existing extension link at $targetJunction..." -ForegroundColor Yellow
     $item = Get-Item $targetJunction
     if ($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
         [System.IO.Directory]::Delete($targetJunction)
@@ -45,8 +66,15 @@ if (Test-Path $targetJunction) {
     }
 }
 
-New-Item -ItemType Junction -Path $targetJunction -Target $sourcePanel | Out-Null
-Write-Host "Successfully created junction: $targetJunction -> $sourcePanel" -ForegroundColor Green
+try {
+    New-Item -ItemType Junction -Path $targetJunction -Target $sourcePanel | Out-Null
+    Write-Host "Successfully created junction: $targetJunction -> $sourcePanel" -ForegroundColor Green
+} catch {
+    Write-Host "Junction creation failed; falling back to recursive copy..." -ForegroundColor Yellow
+    Write-Warning "Copied extension files instead of creating a junction. File edits in repo will not automatically reflect in After Effects."
+    Copy-Item -Path $sourcePanel -Destination $targetJunction -Recurse -Force
+    Write-Host "Copied extension to: $targetJunction" -ForegroundColor Green
+}
 
 Write-Host "`nAE Bridge installed successfully!" -ForegroundColor Cyan
 Write-Host "Restart After Effects and open: Window > Extensions > AE Bridge" -ForegroundColor White

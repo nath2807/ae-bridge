@@ -4,6 +4,7 @@ import path from "path";
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { colorSchema, toolSuccess, toolError } from "../tools/schemas.js";
+import { getAeBridgeHome } from "../utils/paths.js";
 
 export const brandColorsSchema = z.object({
   primary: colorSchema.describe("Primary brand color (hex or RGB array)"),
@@ -45,7 +46,7 @@ export const DEFAULT_BRAND_KIT: BrandKit = {
 };
 
 export function getBrandConfigPath(): string {
-  const baseDir = path.join(os.homedir(), ".ae-bridge");
+  const baseDir = getAeBridgeHome();
   if (!fs.existsSync(baseDir)) {
     fs.mkdirSync(baseDir, { recursive: true });
   }

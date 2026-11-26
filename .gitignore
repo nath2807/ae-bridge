@@ -1,6 +1,9 @@
 # Dependencies & Compiled Output
 node_modules/
 dist/
+server/dist/
+coverage/
+test-results/
 
 # CEP panel vendor libraries & debug files
 cep-panel/lib/

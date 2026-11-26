@@ -35,7 +35,10 @@
                 var fs = require("fs");
                 var os = require("os");
                 var path = require("path");
-                var tokenPath = path.join(os.homedir(), ".ae-bridge", "token");
+                var homeDir = (typeof process !== "undefined" && process.env && process.env.AE_BRIDGE_HOME)
+                    ? process.env.AE_BRIDGE_HOME
+                    : path.join(os.homedir(), ".ae-bridge");
+                var tokenPath = path.join(homeDir, "token");
                 if (fs.existsSync(tokenPath)) {
                     return fs.readFileSync(tokenPath, "utf-8").trim();
                 }

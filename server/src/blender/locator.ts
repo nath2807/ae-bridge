@@ -3,6 +3,7 @@ import os from "os";
 import path from "path";
 import { execSync } from "child_process";
 import { getStateFilePath } from "../director/styles.js";
+import { getAeBridgeHome } from "../utils/paths.js";
 
 /**
  * Searches for installed Blender binaries across OS standard locations.
@@ -117,7 +118,7 @@ export function setStoredBlenderPath(p: string): void {
 }
 
 export function getHdriDir(): string {
-  const dir = path.join(os.homedir(), ".ae-bridge", "hdri");
+  const dir = path.join(getAeBridgeHome(), "hdri");
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -125,11 +126,18 @@ export function getHdriDir(): string {
 }
 
 export function getBlenderRendersDir(): string {
+  // If AE_BRIDGE_HOME is explicitly set, use it for isolated test runs
+  if (process.env.AE_BRIDGE_HOME) {
+    const custom = path.join(getAeBridgeHome(), "renders", "blender");
+    if (!fs.existsSync(custom)) fs.mkdirSync(custom, { recursive: true });
+    return custom.replace(/\\/g, "/");
+  }
+
   // Prefer <Videos>/ae-bridge-renders/blender
   const candidates = [
     path.join(os.homedir(), "Videos", "ae-bridge-renders", "blender"),
     path.join(os.homedir(), "Movies", "ae-bridge-renders", "blender"),
-    path.join(os.homedir(), ".ae-bridge", "renders", "blender")
+    path.join(getAeBridgeHome(), "renders", "blender")
   ];
 
   for (const c of candidates) {
@@ -142,7 +150,7 @@ export function getBlenderRendersDir(): string {
     } catch {}
   }
 
-  const fallback = path.join(os.homedir(), ".ae-bridge", "renders", "blender");
+  const fallback = path.join(getAeBridgeHome(), "renders", "blender");
   if (!fs.existsSync(fallback)) fs.mkdirSync(fallback, { recursive: true });
   return fallback.replace(/\\/g, "/");
 }

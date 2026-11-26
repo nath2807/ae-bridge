@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { spawn, type ChildProcess } from "child_process";
 import { findBlenderExecutable, getBlenderRendersDir } from "./locator.js";
+import { getAeBridgeHome } from "../utils/paths.js";
 import type { SceneSpec } from "./spec.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -50,7 +51,7 @@ interface ActiveProcessInfo {
 const activeJobs = new Map<string, ActiveProcessInfo>();
 
 export function getJobsStorageDir(): string {
-  const dir = path.join(os.homedir(), ".ae-bridge", "jobs");
+  const dir = path.join(getAeBridgeHome(), "jobs");
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -307,4 +308,23 @@ export function cancelBlenderJob(jobId: string): boolean {
   saveJobToDisk(active.job);
   activeJobs.delete(jobId);
   return true;
+}
+
+/**
+ * Kills all active Blender child processes, updates their status to cancelled,
+ * and flushes state to disk. Used during server shutdown.
+ */
+export function killAllBlenderJobs(): void {
+  for (const [id, active] of activeJobs.entries()) {
+    try {
+      active.process.kill("SIGTERM");
+      active.job.status = "cancelled";
+      active.job.error = "Cancelled due to server shutdown";
+      active.job.completedAt = Date.now();
+      saveJobToDisk(active.job);
+    } catch (err) {
+      console.error(`[ae-bridge] Error killing Blender job ${id}:`, err);
+    }
+  }
+  activeJobs.clear();
 }

@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { colorSchema, toolSuccess, toolError } from "../tools/schemas.js";
 import { getActiveBrandDefaults } from "./brand.js";
+import { getAeBridgeHome } from "../utils/paths.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -92,7 +93,7 @@ export function getStylesDir(): string {
 }
 
 export function getStateFilePath(): string {
-  const baseDir = path.join(os.homedir(), ".ae-bridge");
+  const baseDir = getAeBridgeHome();
   if (!fs.existsSync(baseDir)) {
     fs.mkdirSync(baseDir, { recursive: true });
   }

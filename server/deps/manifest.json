@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "CSInterface.js": {
+      "version": "11.x",
+      "repository": "https://github.com/Adobe-CEP/CEP-Resources",
+      "commit": "ab5e4e3e53a42fad08e1225a22a991bb1ffe73f6",
+      "url": "https://raw.githubusercontent.com/Adobe-CEP/CEP-Resources/ab5e4e3e53a42fad08e1225a22a991bb1ffe73f6/CEP_11.x/CSInterface.js",
+      "sha256": "d940cbc991553b4885d1b3b04d99c17f448041a738a12cc0b24ce688ace2d263",
+      "size": 42759
+    }
+  }
+}
