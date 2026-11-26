@@ -4,6 +4,74 @@ All notable changes to the AE Bridge project are documented in this file.
 
 ---
 
+## [1.3.0] - 2026-11-26
+
+### Added
+- **Protocol v2 Handshake & Self-Healing Reliability:**
+  - Upgraded loopback WebSocket wire protocol to Protocol v2 with structured authentication, capabilities negotiation, and version enforcement.
+  - Bidirectional ping/pong heartbeats detecting unresponsive panel crashes and auto-healing stale connections.
+  - Prioritized single-thread request queue (`system` > `user` > `batch`) with abort controller cancellation and timeout tracking.
+  - Structured ExtendScript error propagation capturing exception names, error messages, filenames, and line numbers.
+  - Live system status tool `ae_bridge_status` reporting connection health, latency, queue depth, memory consumption, and AE project telemetry.
+  - Rotating file logger (`$AE_BRIDGE_HOME/logs/bridge.log`) with size-bounded rotation.
+  - Honest CLI doctor (`ae-bridge doctor`) supporting true pass/fail/warn diagnostics, CSXS versions 10–13 registry inspection, non-disruptive `doctor_ping`, and `--json` machine output.
+- **Multi-Client Hub & IPC Proxy Architecture:**
+  - Single-instance Hub role acquisition using atomic PID lockfiles (`$AE_BRIDGE_HOME/hub.lock`).
+  - WebSocket IPC proxy server (`127.0.0.1:8766`) allowing multiple Antigravity agent instances to multiplex through a single After Effects CEP connection.
+  - Embedded HTTP REST bridge (`http://127.0.0.1:8766`) exposing `/health`, `/status`, and `/call` endpoints for external scripting and health probes.
+- **Dynamic Tool Profiles:**
+  - Runtime tool filtering via `AE_BRIDGE_PROFILE` environment variable: `minimal` (~24 tools), `standard` (~85 tools, default), `blender` (~38 tools), and `full` (185 tools).
+  - Runtime meta-tools: `ae_search_tools`, `ae_list_profiles`, and `ae_batch` (executing multiple commands in a single network round-trip wrapped in an atomic ExtendScript undo group).
+  - Visual QA checks: `ae_qa_check` with optional `includePreview` returning base64 JPEG previews directly in the MCP tool response.
+- **Non-Blocking Background Render Engine:**
+  - Headless `aerender` spawner running independently of the CEP panel without blocking the After Effects UI.
+  - Persistent disk tracker (`$AE_BRIDGE_HOME/render_jobs.json`) with frame-by-frame progress streaming, estimated time remaining, and abortable cancellation.
+  - New render tools: `ae_render_job_start`, `ae_render_job_status`, `ae_render_job_cancel`, and `ae_render_job_list`.
+  - Updated `ae_render` to support `mode: "aerender"` alongside `"ae"` and `"ame"`.
+- **Major Capability Leap (20 New Tools, 185 Total):**
+  - Recursive property hierarchy introspection via `ae_describe_property_tree` (ExtendScript + TypeScript).
+  - Undo command `ae_undo` (`app.executeCommand(16)`).
+  - Declarative JSON Scene Graph interchange: `ae_export_scene_graph` and `ae_apply_scene_graph`.
+  - Data-driven versioning and MOGRT automation: `ae_render_mogrt` and `ae_batch_csv_replace` with zero-dependency CSV parsing.
+  - Sharp-powered computer vision metrics: `ae_measure_frame` and `ae_measure_comp` computing mean luminance, RMS contrast, Laplacian variance blur detection, clipping analysis, and temporal stability.
+  - Kinetic typography and transcription: `ae_transcribe_audio` with Whisper CLI detection and zero-dependency SRT/VTT parsing, and `ae_kinetic_captions` generating word-pop, bounce, and typewriter kinetic typography.
+  - Blender engine enhancements: `denoiser` option (`OPENIMAGEDENOISE` / `OPTIX`), procedural `turntable` camera animation, pre-flight schema validator `blender_validate_spec`, and 3D asset import pipeline `ae_import_3d_asset`.
+- **UXP Future-Proofing & HostAdapter Abstraction:**
+  - Polymorphic `HostAdapter` interface abstracting host execution across CEP and UXP.
+  - `CepHostAdapter` wrapping WebSocket lifecycle and ExtendScript ES3 dispatcher.
+  - `UxpHostAdapter` modeling Adobe's modern UXP environment: V8 ECMAScript direct execution, `executeAsModal` transaction locking, and manifest network domain permissions.
+  - Architectural migration guide `docs/uxp-migration.md`.
+- **Antigravity-Native Packaging:**
+  - Root plugin manifest `plugin.json` declaring bundled skills, rules, and suggested prompts.
+  - First-class Antigravity skills `ae-bridge` and `blender-bridge`.
+  - Strict agent execution rules `rules/ae-best-practices.md`.
+  - Quick-start guide `docs/antigravity.md` with Mermaid architecture diagrams and slash command recommendations.
+- **Mock-AE Test Harness & CI:**
+  - In-memory `MockAEPanel` WebSocket client simulating the After Effects CEP runtime.
+  - End-to-end integration test suite (`test/mock-integration.test.ts`) enabling fast CI verification without requiring physical After Effects GUI.
+  - Headless `bpy` stub testing for Blender Python scripts.
+  - Cross-platform packaging scripts `scripts/build-zxp.sh` and `scripts/build-zxp.ps1` with signing documentation in `docs/packaging.md`.
+
+### Fixed
+- **B1–B15 Defect Fixes:**
+  - Resolved fresh install crash in macOS CLI symlinking (`throwIfNoEntry: false`).
+  - Implemented atomic dependency downloads with SHA-256 verification and retry fallback.
+  - Replaced dishonest doctor checks with true registry validation across CSXS 10–13 and non-disruptive `doctor_ping`.
+  - Fixed hanging requests on socket disconnection or replacement by tracking socket ownership per call.
+  - Fixed uncaught WebSocket error crashes during listener teardown.
+  - Unified extension folder name canonically as `com.aebridge` across all CLI commands, installation scripts, manifests, and documentation.
+  - Fixed Windows junction removal safety to prevent accidental recursive repository deletion.
+  - Updated macOS PlayerDebugMode setting to flush `cfprefsd`.
+  - Lazy-loaded MCP tool handlers to prevent CLI crashes when optional packages are missing.
+  - Fixed direct-run script detection on paths with spaces using `realpathSync(argv[1])`.
+  - Added clean shutdown handlers for SIGINT, SIGTERM, and stdin closure with child process termination and lock cleanup.
+  - Single source of truth for version metadata read dynamically from `package.json`.
+  - Timing-safe authentication token comparison using `crypto.timingSafeEqual`.
+  - Restricted WebSocket upgrade origins to local CEP extension origins.
+  - Fixed memory leak in preview frame caching via periodic timestamp cleanup.
+
+---
+
 ## [1.2.0] - 2026-11-24
 
 ### Added

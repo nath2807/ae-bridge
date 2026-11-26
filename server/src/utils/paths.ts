@@ -48,7 +48,7 @@ export function getServerPackageJson(): { name: string; version: string; descrip
       } catch {}
     }
   }
-  return { name: "ae-bridge", version: "1.2.0" };
+  return { name: "ae-bridge", version: "1.3.0" };
 }
 
 export const VERSION = getServerPackageJson().version;

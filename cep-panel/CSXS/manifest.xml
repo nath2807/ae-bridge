@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ExtensionManifest Version="11.0" ExtensionBundleId="com.aebridge" ExtensionBundleVersion="1.2.0" ExtensionBundleName="AE Bridge">
+<ExtensionManifest Version="11.0" ExtensionBundleId="com.aebridge" ExtensionBundleVersion="1.3.0" ExtensionBundleName="AE Bridge">
     <ExtensionList>
-        <Extension Id="com.aebridge.panel" Version="1.2.0" />
+        <Extension Id="com.aebridge.panel" Version="1.3.0" />
     </ExtensionList>
     <ExecutionEnvironment>
         <HostList>

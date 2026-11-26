@@ -59,7 +59,13 @@ flowchart TD
 
 ## Core Capabilities
 
-- **Photoreal Blender 3D Bridge (v1.2.0):** Headless Blender 4.2+ / 5.x integration with GPU acceleration (Cycles OptiX/CUDA & EEVEE Next), 14 PBR materials (chrome, gold, glass, carbon fiber, holographic thin film), studio cyclorama lighting, physics simulations (rigid bodies, shatter, cloth reveals), procedural Geometry Nodes, camera tracking sync (`camera.json`), and multi-pass Z-depth compositing in After Effects.
+- **Photoreal Blender 3D Bridge (v1.2.0–v1.3.0):** Headless Blender 4.2+ / 5.x integration with GPU acceleration (Cycles OptiX/CUDA & EEVEE Next), 14 PBR materials (chrome, gold, glass, carbon fiber, holographic thin film), studio cyclorama lighting, physics simulations (rigid bodies, shatter, cloth reveals), procedural Geometry Nodes, procedural turntable camera generator, pre-flight spec validation (`blender_validate_spec`), camera tracking sync (`camera.json`), and multi-pass Z-depth compositing in After Effects.
+- **Reliability & Multi-Client Hub (v1.3.0):** Protocol v2 handshake, bidirectional ping/pong heartbeats, prioritized request queue (`system` > `user` > `batch`), single-instance PID Hub lockfile (`hub.lock`), IPC proxy server (`127.0.0.1:8766`) for multi-agent concurrency, and embedded HTTP bridge (`/health`, `/status`, `/call`).
+- **Non-Blocking Background Renders (v1.3.0):** Headless background `aerender` spawner (`ae_render_job_start`) with real-time frame progress parsing, percentage tracking, and abortable cancellation—rendering comps without locking the After Effects UI.
+- **Tool Profiles & Atomic Batching (v1.3.0):** Dynamic tool filtering via `AE_BRIDGE_PROFILE` (`minimal`, `standard`, `blender`, `full`), runtime discovery (`ae_search_tools`), and single round-trip atomic execution (`ae_batch`) wrapped in an ExtendScript undo group.
+- **Declarative Scene Graph & Vision Metrics (v1.3.0):** Full composition serialization via JSON Scene Graph (`ae_export_scene_graph`, `ae_apply_scene_graph`), quantitative optical metrics (`ae_measure_frame`, `ae_measure_comp` using `sharp` for luminance, RMS contrast, and Laplacian blur score), and data-driven MOGRT / CSV batch replacement (`ae_batch_csv_replace`).
+- **Kinetic Typography & Captions (v1.3.0):** Speech-to-text integration with Whisper CLI detection, zero-dependency SRT/VTT parsing (`ae_transcribe_audio`), and word-pop / typewriter / bounce animation (`ae_kinetic_captions`).
+- **UXP Future-Proofing (v1.3.0):** Polymorphic `HostAdapter` interface abstracting CEP (WebSocket + JSX) and UXP (modern V8 ECMAScript, `executeAsModal` transactions, and sandboxed domain permissions).
 - **High-End Design Engine (v1.1.0):** 12 curated visual style packs (`minimalPremium`, `techFuturistic`, `darkLuxury`, `cinematicNoir`, etc.), named motion curves (`expoOut`, `snap`, `smooth`, `heavy`, `elasticOut`), layer stagger cascading, full broadcast finishing passes (`ae_finish_pass` with bloom, light wrap, film grain, halation, and chromatic aberration), reference image style extraction, and Art Director scored review.
 - **Executive Director Layer:** Declarative multi-scene storyboards, 12 pre-built video production recipes (`youtubeIntro`, `productLaunch`, `hypePromo`, `socialAd15s`, etc.), brand kit persistence, and milestone checkpoints.
 - **Visual Self-Review & Vision:** Live frame capture, multi-frame contact sheets composited with `sharp`, time-stamped visual progression inspection, and automated composition QA.
@@ -68,7 +74,7 @@ flowchart TD
 - **Particle & Shader Effects:** Procedural spark emitters, floating embers, cosmic stars, light sweeps, anamorphic flares, chromatic aberration, and glitch distortions.
 - **Cinematic Color & Looks:** One-click film grain, vignette, bleach bypass, cinema bars, LUT application, and adjustment grades.
 - **Editing & Timeline:** Multi-track footage assembly, slip editing, speed ramping, time remapping, and audio volume ducking.
-- **Export & Social Distribution:** Smart auto-reframe for 9:16 vertical (Reels/TikTok/Shorts), 1:1 square, and 4:5 portrait formats; background rendering via Adobe Media Encoder (AME) or direct in-AE rendering with bitrate-aware template lookup (`AE Bridge H264 High`).
+- **Export & Social Distribution:** Smart auto-reframe for 9:16 vertical (Reels/TikTok/Shorts), 1:1 square, and 4:5 portrait formats; background rendering via headless `aerender` (`mode: "aerender"`), Adobe Media Encoder (`mode: "ame"`), or direct in-AE rendering with bitrate-aware template lookup (`AE Bridge H264 High`).
 
 ---
 
@@ -221,20 +227,23 @@ Add the AE Bridge server to your client's configuration file:
 ## Known Limitations
 
 - **After Effects Scripting Surface:** ExtendScript controls the native AE Object Model. Some legacy third-party plug-in modal dialogs cannot be dismissed via script.
-- **In-AE Blocking Renders:** When rendering directly inside After Effects (`mode: "ae"`), the After Effects UI thread is blocked until rendering completes. For non-blocking export, use `mode: "ame"` with Adobe Media Encoder.
+- **In-AE Blocking Renders:** When rendering directly inside After Effects (`mode: "ae"`), the After Effects UI thread is blocked until rendering completes. For non-blocking export, use `mode: "aerender"` (via background aerender spawner) or `mode: "ame"` with Adobe Media Encoder.
 - **Fonts:** Text tools attempt to apply specified fonts; if a specific font family is not installed on the host machine, After Effects falls back to the system default sans-serif font.
 
 ---
 
 ## Documentation
 
+- [Antigravity Native Integration Guide](docs/antigravity.md)
+- [UXP Future-Proofing & Migration Guide](docs/uxp-migration.md)
+- [Extension Packaging & Signing Guide](docs/packaging.md)
 - [Installation Guide (Windows & macOS)](docs/installation.md)
 - [System Architecture](docs/architecture.md)
 - [Blender 3D Bridge Guide](docs/blender.md)
 - [Design Engine & Styles Guide](docs/styles.md)
 - [Video Production Recipes](docs/recipes.md)
 - [Storyboard Specification](docs/storyboard.md)
-- [Complete Tools Reference (165 Tools)](docs/tools.md)
+- [Complete Tools Reference (185 Tools)](docs/tools.md)
 - [Troubleshooting & FAQ](docs/troubleshooting.md)
 - [Contributing Tools](docs/contributing-tools.md)
 
@@ -243,7 +252,9 @@ Add the AE Bridge server to your client's configuration file:
 ## Roadmap
 
 - [x] v1.0.0 Core Bridge, 3D Scenes, Vision Pipeline, Director Layer, Recipes, Social Multi-Pack
-- [ ] Direct mogrt parameter binding & spreadsheet autofill
+- [x] v1.1.0 Design Engine, Style Packs, Broadcast Finish Pass, Reference Matching
+- [x] v1.2.0 Blender 3D Bridge, PBR Materials, Physics, Z-Depth Pass, Camera Sync
+- [x] v1.3.0 Protocol v2, Multi-Client Hub, Non-Blocking aerender, Scene Graph, Vision Metrics, UXP Adapter, Antigravity Packaging
 - [ ] Real-time audio waveform peak visualizer
 - [ ] GPU-accelerated frame streaming for conversational live review
 
