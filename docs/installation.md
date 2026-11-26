@@ -16,7 +16,7 @@ This guide walks through setting up AE Bridge on **Windows** and **macOS**.
 
 ### Step 1: Clone Repository & Build Server
 ```bash
-git clone https://github.com/<your-org>/ae-bridge.git
+git clone https://github.com/nath2807/ae-bridge.git
 cd ae-bridge
 npm --prefix server install
 npm --prefix server run build
@@ -28,8 +28,8 @@ Run the cross-platform CLI installer:
 node server/dist/cli.js install
 ```
 
-This performs three essential actions automatically:
-1. Enables CEP `PlayerDebugMode` in the user registry or macOS defaults for `CSXS.10` through `CSXS.13`.
+This performs these actions automatically:
+1. Records existing CEP `PlayerDebugMode` settings in `~/.ae-bridge/install-state.json`, then enables the setting in the user registry or macOS defaults for `CSXS.10` through `CSXS.13`.
 2. Downloads `CSInterface.js` from the official Adobe CEP Resources repository into `cep-panel/lib/` if missing.
 3. Creates a filesystem link (`junction` on Windows, `symlink` on macOS) from `cep-panel/` into Adobe's shared extensions directory:
    - **Windows:** `%APPDATA%\Adobe\CEP\extensions\com.aebridge`
@@ -42,7 +42,18 @@ node server/dist/cli.js doctor
 
 ---
 
-## 2. Manual Installation Steps
+## 2. Uninstall
+
+Run the CLI command to remove the registered panel and restore the CEP debug-mode values that were present before installation:
+```bash
+node server/dist/cli.js uninstall
+```
+
+If AE Bridge was installed by an older CLI version or manually, no previous debug-mode snapshot is available, so uninstall removes `PlayerDebugMode` for CSXS versions 10 through 13. The command does not remove the repository checkout or the downloaded `CSInterface.js` file.
+
+---
+
+## 3. Manual Installation Steps
 
 If you prefer to install without the CLI tool:
 
@@ -84,7 +95,7 @@ If you prefer to install without the CLI tool:
 
 ---
 
-## 3. Launching After Effects
+## 4. Launching After Effects
 
 1. Restart Adobe After Effects completely.
 2. In the top menu, navigate to **Window > Extensions > AE Bridge**.

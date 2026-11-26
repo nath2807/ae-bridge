@@ -6,7 +6,7 @@ import path from "path";
 import net from "net";
 import http from "http";
 import https from "https";
-import { execSync } from "child_process";
+import { execFileSync, execSync } from "child_process";
 import { fileURLToPath } from "url";
 import { runServer } from "./index.js";
 import { getAuthTokenPath, getOrCreateAuthToken } from "./bridge.js";
@@ -14,6 +14,165 @@ import { getAuthTokenPath, getOrCreateAuthToken } from "./bridge.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, "../..");
+const CSXS_VERSIONS = ["10", "11", "12", "13"];
+const INSTALL_STATE_PATH = path.join(os.homedir(), ".ae-bridge", "install-state.json");
+
+interface DebugModeSetting {
+  type: string;
+  value: string;
+}
+
+type DebugModeSnapshot = Record<string, DebugModeSetting | null>;
+type InstallState = Record<string, DebugModeSnapshot>;
+
+function readInstallState(): InstallState {
+  if (!fs.existsSync(INSTALL_STATE_PATH)) return {};
+  const parsed: unknown = JSON.parse(fs.readFileSync(INSTALL_STATE_PATH, "utf-8"));
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error(`Invalid install state file: ${INSTALL_STATE_PATH}`);
+  }
+  return parsed as InstallState;
+}
+
+function writeInstallState(state: InstallState): void {
+  fs.mkdirSync(path.dirname(INSTALL_STATE_PATH), { recursive: true, mode: 0o700 });
+  fs.writeFileSync(INSTALL_STATE_PATH, JSON.stringify(state, null, 2), { mode: 0o600 });
+  if (process.platform !== "win32") {
+    try {
+      fs.chmodSync(INSTALL_STATE_PATH, 0o600);
+    } catch {}
+  }
+}
+
+function captureDebugMode(platform: NodeJS.Platform): DebugModeSnapshot {
+  const snapshot: DebugModeSnapshot = {};
+  if (platform === "win32") {
+    for (const version of CSXS_VERSIONS) {
+      try {
+        const output = execFileSync(
+          "reg",
+          ["query", `HKCU\\Software\\Adobe\\CSXS.${version}`, "/v", "PlayerDebugMode"],
+          { encoding: "utf-8", stdio: ["ignore", "pipe", "ignore"] }
+        );
+        const match = output.match(/PlayerDebugMode\s+(REG_[A-Z0-9_]+)\s+([^\r\n]+)/i);
+        snapshot[version] = match ? { type: match[1], value: match[2].trim() } : null;
+      } catch {
+        snapshot[version] = null;
+      }
+    }
+  } else if (platform === "darwin") {
+    for (const version of CSXS_VERSIONS) {
+      const domain = `com.adobe.CSXS.${version}`;
+      try {
+        const typeOutput = execFileSync("defaults", ["read-type", domain, "PlayerDebugMode"], { encoding: "utf-8" });
+        const type = typeOutput.match(/Type is (\w+)/i)?.[1]?.toLowerCase();
+        const value = execFileSync("defaults", ["read", domain, "PlayerDebugMode"], { encoding: "utf-8" }).trim();
+        snapshot[version] = type ? { type, value } : null;
+      } catch {
+        snapshot[version] = null;
+      }
+    }
+  }
+  return snapshot;
+}
+
+function saveOriginalDebugMode(platform: NodeJS.Platform): void {
+  if (platform !== "win32" && platform !== "darwin") return;
+  const state = readInstallState();
+  if (!state[platform]) {
+    state[platform] = captureDebugMode(platform);
+    writeInstallState(state);
+  }
+}
+
+function debugModeExists(platform: NodeJS.Platform, version: string): boolean {
+  try {
+    if (platform === "win32") {
+      const output = execFileSync(
+        "reg",
+        ["query", `HKCU\\Software\\Adobe\\CSXS.${version}`, "/v", "PlayerDebugMode"],
+        { encoding: "utf-8", stdio: ["ignore", "pipe", "ignore"] }
+      );
+      return /PlayerDebugMode/i.test(output);
+    }
+    if (platform === "darwin") {
+      execFileSync("defaults", ["read-type", `com.adobe.CSXS.${version}`, "PlayerDebugMode"], { stdio: "ignore" });
+      return true;
+    }
+  } catch {
+    return false;
+  }
+  return false;
+}
+
+function restoreDebugMode(platform: NodeJS.Platform): void {
+  if (platform !== "win32" && platform !== "darwin") return;
+  const state = readInstallState();
+  const snapshot = state[platform] || {};
+  let restoreFailed = false;
+  for (const version of CSXS_VERSIONS) {
+    const setting = snapshot[version];
+    try {
+      if (platform === "win32") {
+        const key = `HKCU\\Software\\Adobe\\CSXS.${version}`;
+        if (setting) {
+          execFileSync("reg", ["add", key, "/v", "PlayerDebugMode", "/t", setting.type, "/d", setting.value, "/f"], { stdio: "ignore" });
+        } else if (debugModeExists(platform, version)) {
+          execFileSync("reg", ["delete", key, "/v", "PlayerDebugMode", "/f"], { stdio: "ignore" });
+        }
+      } else if (platform === "darwin") {
+        const domain = `com.adobe.CSXS.${version}`;
+        if (setting) {
+          const optionByType: Record<string, string> = {
+            string: "-string",
+            integer: "-int",
+            float: "-float",
+            boolean: "-bool"
+          };
+          const option = optionByType[setting.type];
+          if (!option) throw new Error(`Cannot restore PlayerDebugMode type '${setting.type}'`);
+          execFileSync("defaults", ["write", domain, "PlayerDebugMode", option, setting.value], { stdio: "ignore" });
+        } else if (debugModeExists(platform, version)) {
+          execFileSync("defaults", ["delete", domain, "PlayerDebugMode"], { stdio: "ignore" });
+        }
+      }
+      console.log(`  ✓ Restored CEP PlayerDebugMode for CSXS.${version}`);
+    } catch (err) {
+      restoreFailed = true;
+      console.warn(`  ! Could not restore CEP PlayerDebugMode for CSXS.${version}: ${(err as Error).message}`);
+    }
+  }
+
+  if (state[platform] && !restoreFailed) {
+    delete state[platform];
+    if (Object.keys(state).length > 0) writeInstallState(state);
+    else if (fs.existsSync(INSTALL_STATE_PATH)) fs.unlinkSync(INSTALL_STATE_PATH);
+  }
+  if (restoreFailed) {
+    throw new Error(`One or more CEP debug settings could not be restored; state was retained at ${INSTALL_STATE_PATH}`);
+  }
+}
+
+function extensionPathForPlatform(platform: NodeJS.Platform): string | null {
+  if (platform === "win32") {
+    const appData = process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming");
+    return path.join(appData, "Adobe", "CEP", "extensions", "com.aebridge");
+  }
+  if (platform === "darwin") {
+    return path.join(os.homedir(), "Library", "Application Support", "Adobe", "CEP", "extensions", "com.aebridge");
+  }
+  return null;
+}
+
+function pathExists(targetPath: string): boolean {
+  try {
+    fs.lstatSync(targetPath);
+    return true;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return false;
+    throw err;
+  }
+}
 
 async function downloadFile(url: string, destPath: string): Promise<void> {
   const dir = path.dirname(destPath);
@@ -67,6 +226,8 @@ async function handleInstall(): Promise<void> {
     throw new Error(`cep-panel directory not found at ${sourcePanel}`);
   }
 
+  saveOriginalDebugMode(platform);
+
   if (platform === "win32") {
     // 1. Windows Registry: Set PlayerDebugMode = 1 for CSXS 10 - 13
     const csxsVersions = ["CSXS.10", "CSXS.11", "CSXS.12", "CSXS.13"];
@@ -87,7 +248,7 @@ async function handleInstall(): Promise<void> {
     }
 
     const junctionPath = path.join(extensionsDir, "com.aebridge");
-    if (fs.existsSync(junctionPath)) {
+    if (pathExists(junctionPath)) {
       try {
         fs.rmSync(junctionPath, { recursive: true, force: true });
       } catch {}
@@ -120,7 +281,7 @@ async function handleInstall(): Promise<void> {
     }
 
     const symlinkPath = path.join(extensionsDir, "com.aebridge");
-    if (fs.existsSync(symlinkPath) || fs.lstatSync(symlinkPath).isSymbolicLink()) {
+    if (pathExists(symlinkPath)) {
       try {
         fs.unlinkSync(symlinkPath);
       } catch {}
@@ -133,6 +294,39 @@ async function handleInstall(): Promise<void> {
   }
 
   console.log("\n🎉 Installation complete! Restart After Effects and open: Window > Extensions > AE Bridge\n");
+}
+
+async function handleUninstall(): Promise<void> {
+  console.log("\n🧹 Uninstalling AE Bridge CEP Extension...\n");
+  const platform = os.platform();
+  const extensionPath = extensionPathForPlatform(platform);
+  let removalError: Error | null = null;
+  let restoreError: Error | null = null;
+
+  if (!extensionPath) {
+    console.warn(`  ! Platform '${platform}' does not have a supported CEP panel installation.`);
+  } else if (pathExists(extensionPath)) {
+    try {
+      fs.rmSync(extensionPath, { recursive: true, force: true });
+      console.log(`  ✓ Removed registered CEP panel: ${extensionPath}`);
+    } catch (err) {
+      removalError = err as Error;
+      console.error(`  ✗ Could not remove registered CEP panel: ${removalError.message}`);
+    }
+  } else {
+    console.log("  ✓ No registered CEP panel files found.");
+  }
+
+  try {
+    restoreDebugMode(platform);
+  } catch (err) {
+    restoreError = err as Error;
+    console.error(`  ✗ ${restoreError.message}`);
+  }
+  if (removalError || restoreError) {
+    throw new Error([removalError?.message, restoreError?.message].filter(Boolean).join("; "));
+  }
+  console.log("\nUninstall complete. Restart After Effects to apply the changes.\n");
 }
 
 async function isPortInUse(port: number, host = "127.0.0.1"): Promise<boolean> {
@@ -361,6 +555,7 @@ AE Bridge CLI — The Adobe After Effects MCP Bridge (v1.2.0)
 USAGE:
   ae-bridge                           Start the MCP server over stdio
   ae-bridge install                   Install the CEP panel extension and set debug modes
+  ae-bridge uninstall                 Remove the CEP panel and restore CEP debug settings
   ae-bridge doctor                    Inspect system dependencies, ports, and panel connectivity
   ae-bridge config --client <name>    Output MCP client configuration JSON
 
@@ -382,6 +577,10 @@ async function main(): Promise<void> {
   switch (command) {
     case "install":
       await handleInstall();
+      break;
+
+    case "uninstall":
+      await handleUninstall();
       break;
 
     case "doctor":
