@@ -562,6 +562,87 @@ export async function runDiagnostics(): Promise<DoctorReport> {
     });
   }
 
+  // 8. Live Round-Trip Check (when port is active and token exists)
+  if (inUse && fs.existsSync(tokenPath)) {
+    try {
+      const token = fs.readFileSync(tokenPath, "utf-8").trim();
+      const roundTripResult = await new Promise<{ ok?: boolean; connected?: boolean; latencyMs?: number; aeVersion?: string; projectName?: string; error?: string }>((resolve) => {
+        let finished = false;
+        let ws: any = null;
+
+        const timer = setTimeout(() => {
+          if (!finished) {
+            finished = true;
+            if (ws) {
+              try { ws.close(); } catch {}
+            }
+            resolve({ ok: false, error: "Timed out waiting for doctor response after 2s" });
+          }
+        }, 2000);
+
+        import("ws").then(({ WebSocket: WsClient }) => {
+          try {
+            ws = new WsClient(`ws://127.0.0.1:${port}`);
+            ws.on("open", () => {
+              try {
+                ws.send(JSON.stringify({ type: "doctor_ping", token }));
+              } catch {}
+            });
+            ws.on("message", (raw: any) => {
+              if (!finished) {
+                finished = true;
+                clearTimeout(timer);
+                try {
+                  const res = JSON.parse(raw.toString());
+                  resolve(res);
+                } catch (parseErr: any) {
+                  resolve({ ok: false, error: parseErr.message });
+                }
+                try { ws.close(); } catch {}
+              }
+            });
+            ws.on("error", (err: any) => {
+              if (!finished) {
+                finished = true;
+                clearTimeout(timer);
+                resolve({ ok: false, error: err.message || "WebSocket probe error" });
+              }
+            });
+          } catch (e: any) {
+            if (!finished) {
+              finished = true;
+              clearTimeout(timer);
+              resolve({ ok: false, error: e.message });
+            }
+          }
+        }).catch((err) => {
+          if (!finished) {
+            finished = true;
+            clearTimeout(timer);
+            resolve({ ok: false, error: err.message });
+          }
+        });
+      });
+
+      if (roundTripResult.connected) {
+        checks.push({
+          id: "round_trip",
+          name: "Live Panel Round-Trip",
+          status: "pass",
+          message: `Panel responsive (AE: ${roundTripResult.aeVersion || "connected"}, Project: '${roundTripResult.projectName || "Untitled"}', Latency: ${roundTripResult.latencyMs}ms)`
+        });
+      } else {
+        checks.push({
+          id: "round_trip",
+          name: "Live Panel Round-Trip",
+          status: "warn",
+          message: "Server is running, but no After Effects panel is connected",
+          hint: "Open Window > Extensions > AE Bridge in After Effects."
+        });
+      }
+    } catch {}
+  }
+
   const hasFailure = checks.some((c) => c.status === "fail");
   return {
     ok: !hasFailure,

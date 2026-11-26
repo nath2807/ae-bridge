@@ -5,6 +5,8 @@
     var ws = null;
     var commandLogs = [];
     var isAuthenticated = false;
+    var reconnectDelay = 500;
+    var heartbeatInterval = null;
 
     function addLog(text) {
         var time = new Date().toLocaleTimeString();
@@ -56,6 +58,20 @@
         addLog("Loaded dispatcher: " + cleanPath);
     });
 
+    function scheduleReconnect() {
+        if (heartbeatInterval) {
+            clearInterval(heartbeatInterval);
+            heartbeatInterval = null;
+        }
+
+        // Exponential backoff with +/- 20% random jitter
+        var jitter = 0.8 + Math.random() * 0.4;
+        var actualDelay = Math.round(reconnectDelay * jitter);
+        addLog("Reconnecting in " + actualDelay + "ms...");
+        setTimeout(connect, actualDelay);
+        reconnectDelay = Math.min(5000, reconnectDelay * 2);
+    }
+
     function connect() {
         isAuthenticated = false;
         updateStatus("Connecting...", "#ff9800");
@@ -64,7 +80,7 @@
             ws = new WebSocket("ws://127.0.0.1:8765");
         } catch (e) {
             updateStatus("Disconnected — retrying", "#f44336");
-            setTimeout(connect, 3000);
+            scheduleReconnect();
             return;
         }
 
@@ -74,28 +90,34 @@
                 updateStatus("Auth failed: token missing", "#f44336");
                 addLog("Auth token missing at ~/.ae-bridge/token");
                 try { ws.close(); } catch (e) {}
-                setTimeout(connect, 5000);
+                scheduleReconnect();
                 return;
             }
 
             updateStatus("Authenticating...", "#ff9800");
-            addLog("Sending auth token to server");
+            addLog("Sending protocol v2 handshake...");
             try {
-                ws.send(JSON.stringify({ type: "auth", token: token }));
+                ws.send(JSON.stringify({
+                    type: "auth",
+                    token: token,
+                    protocolVersion: 2,
+                    panelVersion: "1.3.0",
+                    capabilities: ["executeScript", "ping", "batch", "progress", "cancel"]
+                }));
             } catch (eSend) {
                 updateStatus("Auth failed: send error", "#f44336");
             }
         };
 
-        ws.onclose = function () {
+        ws.onclose = function (evt) {
             if (!isAuthenticated) {
                 updateStatus("Disconnected / Auth failed", "#f44336");
             } else {
                 updateStatus("Disconnected — retrying", "#f44336");
             }
             isAuthenticated = false;
-            addLog("WebSocket closed. Reconnecting in 3s...");
-            setTimeout(connect, 3000);
+            addLog("WebSocket closed (" + evt.code + ").");
+            scheduleReconnect();
         };
 
         ws.onerror = function () {
@@ -109,8 +131,9 @@
                 // Handle authentication handshake response
                 if (data.type === "auth_ok") {
                     isAuthenticated = true;
-                    updateStatus("Connected", "#4caf50");
-                    addLog("✓ Authenticated with server");
+                    reconnectDelay = 500; // Reset backoff on success
+                    updateStatus("Connected (v" + (data.protocolVersion || 2) + ")", "#4caf50");
+                    addLog("✓ Authenticated with server (v" + (data.serverVersion || "1.3.0") + ")");
                     return;
                 }
 
@@ -119,6 +142,19 @@
                     updateStatus("Auth failed", "#f44336");
                     addLog("✗ Authentication failed: " + (data.error || "Invalid token"));
                     try { ws.close(); } catch (e) {}
+                    return;
+                }
+
+                // Handle heartbeat ping from server
+                if (data.type === "heartbeat_ping") {
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        try {
+                            ws.send(JSON.stringify({
+                                type: "heartbeat_pong",
+                                timestamp: data.timestamp
+                            }));
+                        } catch (ePong) {}
+                    }
                     return;
                 }
 
@@ -151,7 +187,11 @@
                                 id: id,
                                 ok: !!parsed.ok,
                                 result: parsed.result,
-                                error: parsed.error
+                                error: parsed.error,
+                                errorName: parsed.errorName,
+                                line: parsed.line,
+                                file: parsed.file,
+                                stack: parsed.stack
                             }));
                         }
                     } catch (e) {
@@ -160,7 +200,7 @@
                             ws.send(JSON.stringify({
                                 id: id,
                                 ok: false,
-                                error: "Failed to parse ExtendScript response"
+                                error: "Failed to parse ExtendScript response: " + e.message
                             }));
                         }
                     }

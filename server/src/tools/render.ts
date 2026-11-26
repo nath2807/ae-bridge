@@ -108,7 +108,10 @@ export function registerRenderTools(server: McpServer): void {
             workAreaOnly: params.workAreaOnly,
             mode: params.mode
           },
-          timeoutMs
+          {
+            timeoutMs,
+            priority: "batch"
+          }
         );
 
         return toolSuccess(result);

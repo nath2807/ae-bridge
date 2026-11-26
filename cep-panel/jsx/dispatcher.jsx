@@ -72,7 +72,10 @@
                 return aeStringify({
                     ok: false,
                     error: e ? (e.message || e.toString()) : "Unknown error",
-                    line: e ? e.line : null
+                    errorName: (e && e.name) ? e.name : "ExtendScriptError",
+                    line: (e && typeof e.line !== "undefined") ? e.line : null,
+                    file: (e && e.fileName) ? File(e.fileName).name : null,
+                    stack: (typeof $.stack !== "undefined") ? $.stack : null
                 });
             }
         }

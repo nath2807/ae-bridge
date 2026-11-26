@@ -5,28 +5,84 @@ import crypto from "crypto";
 import http from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { randomUUID } from "node:crypto";
-import { getAeBridgeHome } from "./utils/paths.js";
+import { getAeBridgeHome, VERSION } from "./utils/paths.js";
+import { logger } from "./utils/logger.js";
+import { BridgeError } from "./utils/errors.js";
 
-interface PendingCall {
-  resolve: (value: unknown) => void;
-  reject: (reason: Error) => void;
-  timer: NodeJS.Timeout;
-  socket: WebSocket;
-  method: string;
+export const PROTOCOL_VERSION = 2;
+export const SERVER_CAPABILITIES = [
+  "priorityQueue",
+  "heartbeat",
+  "structuredErrors",
+  "progress",
+  "cancel"
+];
+
+export type CallPriority = "system" | "user" | "batch";
+
+export interface CallOptions {
+  priority?: CallPriority;
+  timeoutMs?: number;
+  onProgress?: (percent: number, message?: string) => void;
+  signal?: AbortSignal;
 }
 
-interface AeResponse {
+interface QueueItem {
+  id: string;
+  method: string;
+  params: object;
+  priority: CallPriority;
+  timeoutMs: number;
+  enqueuedAt: number;
+  onProgress?: (percent: number, message?: string) => void;
+  resolve: (value: unknown) => void;
+  reject: (reason: Error) => void;
+  timer?: NodeJS.Timeout;
+}
+
+interface ActiveCall {
+  item: QueueItem;
+  socket: WebSocket;
+  timer: NodeJS.Timeout;
+}
+
+interface AeMessage {
   id?: string;
   type?: string;
   token?: string;
+  protocolVersion?: number;
+  panelVersion?: string;
+  capabilities?: string[];
   ok?: boolean;
   result?: unknown;
   error?: string;
+  errorName?: string;
+  line?: number;
+  file?: string;
+  stack?: string;
+  timestamp?: number;
+  progress?: number;
+  progressMessage?: string;
 }
 
 let wss: WebSocketServer | null = null;
 let activeClient: WebSocket | null = null;
-const pendingRequests = new Map<string, PendingCall>();
+let heartbeatInterval: NodeJS.Timeout | null = null;
+
+// Telemetry state
+let panelProtocolVersion: number | null = null;
+let panelVersion: string | null = null;
+let panelCapabilities: string[] = [];
+let lastHeartbeatPing = 0;
+let lastHeartbeatPong = 0;
+let roundTripLatencyMs: number | null = null;
+let serverStartTime = Date.now();
+let cachedAeVersion: string | null = null;
+let cachedActiveProject: string | null = null;
+
+// Prioritized single-thread queue state
+const requestQueue: QueueItem[] = [];
+let activeExecution: ActiveCall | null = null;
 
 export function getAuthTokenPath(): string {
   const dir = getAeBridgeHome();
@@ -48,7 +104,7 @@ export function getOrCreateAuthToken(): string {
       }
     }
   } catch (err) {
-    console.error("[ae-bridge] Error reading existing auth token, regenerating:", err);
+    logger.error("Error reading existing auth token, regenerating:", err);
   }
 
   const newToken = crypto.randomBytes(32).toString("hex");
@@ -60,7 +116,7 @@ export function getOrCreateAuthToken(): string {
       } catch {}
     }
   } catch (err) {
-    console.error("[ae-bridge] Failed to persist auth token:", err);
+    logger.error("Failed to persist auth token:", err);
   }
   return newToken;
 }
@@ -79,13 +135,118 @@ function timingSafeTokenCompare(received: unknown, expected: string): boolean {
   return crypto.timingSafeEqual(receivedBuf, expectedBuf);
 }
 
-function rejectPendingForSocket(socket: WebSocket, reason: string): void {
-  for (const [id, pending] of pendingRequests.entries()) {
-    if (pending.socket === socket) {
-      clearTimeout(pending.timer);
-      pending.reject(new Error(`After Effects panel disconnected while executing '${pending.method}': ${reason}`));
-      pendingRequests.delete(id);
+const PRIORITY_WEIGHTS: Record<CallPriority, number> = {
+  system: 0,
+  user: 1,
+  batch: 2
+};
+
+function enqueueRequest(item: QueueItem): void {
+  requestQueue.push(item);
+  // Sort queue: lower weight first (system < user < batch), then FIFO by enqueuedAt
+  requestQueue.sort((a, b) => {
+    const pDiff = PRIORITY_WEIGHTS[a.priority] - PRIORITY_WEIGHTS[b.priority];
+    if (pDiff !== 0) return pDiff;
+    return a.enqueuedAt - b.enqueuedAt;
+  });
+  processQueue();
+}
+
+function processQueue(): void {
+  if (activeExecution !== null) {
+    return; // Already executing a call; ExtendScript cannot run concurrently
+  }
+
+  if (requestQueue.length === 0) {
+    return;
+  }
+
+  if (!isConnected() || !activeClient) {
+    // If not connected, items stay enqueued until connection arrives or they time out
+    return;
+  }
+
+  const nextItem = requestQueue.shift()!;
+  const socket = activeClient;
+
+  const timer = setTimeout(() => {
+    if (activeExecution && activeExecution.item.id === nextItem.id) {
+      activeExecution = null;
+      nextItem.reject(
+        new Error(`Call '${nextItem.method}' timed out after ${nextItem.timeoutMs / 1000}s waiting for After Effects response`)
+      );
+      processQueue();
     }
+  }, nextItem.timeoutMs);
+
+  activeExecution = {
+    item: nextItem,
+    socket,
+    timer
+  };
+
+  const requestPayload = JSON.stringify({
+    id: nextItem.id,
+    method: nextItem.method,
+    params: nextItem.params
+  });
+
+  try {
+    socket.send(requestPayload);
+  } catch (err) {
+    clearTimeout(timer);
+    activeExecution = null;
+    nextItem.reject(new Error(`Failed to dispatch message to After Effects: ${(err as Error).message}`));
+    processQueue();
+  }
+}
+
+function dropSocketCalls(socket: WebSocket, reason: string): void {
+  // Reject currently executing call if bound to this socket
+  if (activeExecution && activeExecution.socket === socket) {
+    clearTimeout(activeExecution.timer);
+    const item = activeExecution.item;
+    activeExecution = null;
+    item.reject(new Error(`After Effects panel disconnected while executing '${item.method}': ${reason}`));
+  }
+
+  // Reject all enqueued requests if no other socket is available
+  if (activeClient === socket || activeClient === null) {
+    while (requestQueue.length > 0) {
+      const item = requestQueue.shift()!;
+      item.reject(new Error(`After Effects panel disconnected before call '${item.method}' could run: ${reason}`));
+    }
+  }
+}
+
+function startHeartbeat(): void {
+  stopHeartbeat();
+  heartbeatInterval = setInterval(() => {
+    if (!isConnected() || !activeClient) return;
+
+    // Check if client missed pong for > 10s
+    if (lastHeartbeatPing > 0 && lastHeartbeatPong > 0 && Date.now() - lastHeartbeatPong > 10000) {
+      logger.warn("Heartbeat pong timed out (>10s); dropping stale socket connection");
+      try {
+        activeClient.close(4008, "Heartbeat timeout");
+      } catch {}
+      return;
+    }
+
+    lastHeartbeatPing = Date.now();
+    try {
+      activeClient.send(JSON.stringify({
+        type: "heartbeat_ping",
+        timestamp: lastHeartbeatPing
+      }));
+    } catch {}
+  }, 5000);
+}
+
+function stopHeartbeat(): void {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
   }
 }
 
@@ -93,6 +254,7 @@ export function startBridge(customPort?: number): Promise<void> {
   const port = customPort ?? Number(process.env.AE_BRIDGE_PORT || 8765);
   const host = "127.0.0.1";
   const expectedToken = getOrCreateAuthToken();
+  serverStartTime = Date.now();
 
   return new Promise((resolve, reject) => {
     wss = new WebSocketServer({
@@ -102,29 +264,27 @@ export function startBridge(customPort?: number): Promise<void> {
     });
 
     wss.on("listening", () => {
-      console.error(`[ae-bridge] WebSocket listening on ws://${host}:${port} (bound to 127.0.0.1)`);
+      logger.info(`WebSocket listening on ws://${host}:${port} (bound to 127.0.0.1)`);
       resolve();
     });
 
     wss.on("connection", (ws: WebSocket, req: http.IncomingMessage) => {
-      // Validate Origin header (Cross-Site WebSocket Hijacking defense)
       const origin = req.headers.origin;
       if (origin) {
         const lower = origin.toLowerCase();
         if (lower.startsWith("http://") || lower.startsWith("https://")) {
-          console.error(`[ae-bridge] Rejecting WebSocket connection from untrusted web browser origin: ${origin}`);
+          logger.error(`Rejecting WebSocket connection from untrusted web browser origin: ${origin}`);
           ws.close(4003, "Forbidden origin");
           return;
         }
       }
 
-      console.error("[ae-bridge] After Effects panel opened connection, awaiting auth token...");
+      logger.info("After Effects panel opened connection, awaiting protocol v2 handshake...");
       let isAuthenticated = false;
 
-      // Reject clients that fail to authenticate within 3s
       const authTimeout = setTimeout(() => {
         if (!isAuthenticated) {
-          console.error("[ae-bridge] WebSocket client authentication timed out (3s)");
+          logger.error("WebSocket client authentication timed out (3s)");
           try {
             ws.send(JSON.stringify({ type: "auth_failed", error: "Authentication timeout after 3s" }));
             ws.close(4001, "Auth timeout");
@@ -134,21 +294,105 @@ export function startBridge(customPort?: number): Promise<void> {
 
       ws.on("message", (raw: string | Buffer) => {
         try {
-          const payload: AeResponse = JSON.parse(raw.toString());
+          const payload: AeMessage = JSON.parse(raw.toString());
 
-          // Handle initial authentication handshake
+          // 1. Initial Handshake & Auth
           if (!isAuthenticated) {
-            if (payload.type === "auth" && timingSafeTokenCompare(payload.token, expectedToken)) {
+            // Non-disruptive diagnostic probe from doctor CLI
+            if (payload.type === "doctor_ping") {
+              clearTimeout(authTimeout);
+              if (!timingSafeTokenCompare(payload.token, expectedToken)) {
+                try {
+                  ws.send(JSON.stringify({ type: "doctor_pong", ok: false, error: "Invalid token" }));
+                  ws.close(4003, "Invalid token");
+                } catch {}
+                return;
+              }
+
+              if (isConnected()) {
+                const start = Date.now();
+                callAE("ping", {}, 2000)
+                  .then((res: any) => {
+                    const elapsed = Date.now() - start;
+                    try {
+                      ws.send(JSON.stringify({
+                        type: "doctor_pong",
+                        ok: true,
+                        connected: true,
+                        latencyMs: elapsed,
+                        aeVersion: res?.aeVersion || "unknown",
+                        projectName: res?.projectName || "Untitled"
+                      }));
+                      ws.close(1000, "Doctor probe complete");
+                    } catch {}
+                  })
+                  .catch((err) => {
+                    try {
+                      ws.send(JSON.stringify({
+                        type: "doctor_pong",
+                        ok: false,
+                        connected: true,
+                        error: (err as Error).message
+                      }));
+                      ws.close(1000, "Doctor probe complete");
+                    } catch {}
+                  });
+              } else {
+                try {
+                  ws.send(JSON.stringify({
+                    type: "doctor_pong",
+                    ok: false,
+                    connected: false,
+                    message: "AE Bridge server is running, but no After Effects panel is connected"
+                  }));
+                  ws.close(1000, "Doctor probe complete");
+                } catch {}
+              }
+              return;
+            }
+
+            if (payload.type === "auth") {
+              if (!timingSafeTokenCompare(payload.token, expectedToken)) {
+                clearTimeout(authTimeout);
+                logger.error("Authentication failed: invalid token received");
+                try {
+                  ws.send(JSON.stringify({ type: "auth_failed", error: "Invalid authentication token" }));
+                  ws.close(4003, "Authentication failed");
+                } catch {}
+                return;
+              }
+
+              // Check Protocol Version (expect protocolVersion 2)
+              const clientProto = payload.protocolVersion ?? 1;
+              if (clientProto !== PROTOCOL_VERSION) {
+                clearTimeout(authTimeout);
+                const errMsg = `Protocol version mismatch: client reported ${clientProto}, server requires version ${PROTOCOL_VERSION}. Please update the CEP panel extension and server.`;
+                logger.error(errMsg);
+                try {
+                  ws.send(JSON.stringify({
+                    type: "auth_failed",
+                    error: errMsg,
+                    expectedProtocolVersion: PROTOCOL_VERSION
+                  }));
+                  ws.close(4002, "Protocol mismatch");
+                } catch {}
+                return;
+              }
+
               isAuthenticated = true;
               clearTimeout(authTimeout);
 
+              panelProtocolVersion = clientProto;
+              panelVersion = payload.panelVersion || "unknown";
+              panelCapabilities = payload.capabilities || [];
+              lastHeartbeatPong = Date.now();
+
               if (activeClient && activeClient !== ws) {
-                console.error("[ae-bridge] Replacing existing client connection with newest authenticated panel");
+                logger.info("Replacing existing client connection with newest authenticated panel");
                 const oldClient = activeClient;
                 activeClient = ws;
-                // Keep error listener alive to avoid uncaught exceptions during closing
                 oldClient.on("error", () => {});
-                rejectPendingForSocket(oldClient, "Replaced by newer panel connection");
+                dropSocketCalls(oldClient, "Replaced by newer panel connection");
                 try {
                   oldClient.close(4000, "Replaced by newer panel connection");
                 } catch {}
@@ -156,63 +400,119 @@ export function startBridge(customPort?: number): Promise<void> {
                 activeClient = ws;
               }
 
+              startHeartbeat();
+
               try {
-                ws.send(JSON.stringify({ type: "auth_ok" }));
+                ws.send(JSON.stringify({
+                  type: "auth_ok",
+                  protocolVersion: PROTOCOL_VERSION,
+                  serverVersion: VERSION,
+                  capabilities: SERVER_CAPABILITIES
+                }));
               } catch {}
-              console.error("[ae-bridge] After Effects panel authenticated successfully");
+              logger.info(`After Effects panel authenticated successfully (panel v${panelVersion}, protocol v${panelProtocolVersion})`);
+
+              // Resume processing queue
+              processQueue();
               return;
             } else {
               clearTimeout(authTimeout);
-              console.error("[ae-bridge] Authentication failed: invalid token received");
               try {
-                ws.send(JSON.stringify({ type: "auth_failed", error: "Invalid authentication token" }));
-                ws.close(4003, "Authentication failed");
+                ws.send(JSON.stringify({ type: "auth_failed", error: "First message must be auth handshake" }));
+                ws.close(4003, "Auth required");
               } catch {}
               return;
             }
           }
 
-          // Handle authenticated ExtendScript responses
+          // 2. Heartbeat Ping / Pong Handling
+          if (payload.type === "heartbeat_pong") {
+            lastHeartbeatPong = Date.now();
+            if (payload.timestamp) {
+              roundTripLatencyMs = Math.max(0, Date.now() - payload.timestamp);
+            }
+            return;
+          }
+
+          if (payload.type === "heartbeat_ping") {
+            try {
+              ws.send(JSON.stringify({
+                type: "heartbeat_pong",
+                timestamp: payload.timestamp || Date.now()
+              }));
+            } catch {}
+            return;
+          }
+
+          // 3. Progress notifications during long-running tasks
+          if (payload.type === "progress" && payload.id) {
+            if (activeExecution && activeExecution.item.id === payload.id) {
+              if (activeExecution.item.onProgress && typeof payload.progress === "number") {
+                activeExecution.item.onProgress(payload.progress, payload.progressMessage);
+              }
+            }
+            return;
+          }
+
+          // 4. Dispatch Call Responses
           if (!payload.id) return;
 
-          const pending = pendingRequests.get(payload.id);
-          if (!pending) return;
+          if (activeExecution && activeExecution.item.id === payload.id) {
+            clearTimeout(activeExecution.timer);
+            const { resolve, reject, method } = activeExecution.item;
+            activeExecution = null;
 
-          clearTimeout(pending.timer);
-          pendingRequests.delete(payload.id);
+            if (payload.ok) {
+              if (method === "ping" && payload.result && typeof payload.result === "object") {
+                const res = payload.result as any;
+                if (res.aeVersion) cachedAeVersion = res.aeVersion;
+                if (res.projectName) cachedActiveProject = res.projectName;
+              }
+              resolve(payload.result);
+            } else {
+              const bridgeErr = new BridgeError(payload.error || "ExtendScript execution failed", {
+                errorName: payload.errorName,
+                line: payload.line,
+                file: payload.file,
+                stackTrace: payload.stack
+              });
+              reject(bridgeErr);
+            }
 
-          if (payload.ok) {
-            pending.resolve(payload.result);
-          } else {
-            pending.reject(new Error(payload.error || "ExtendScript execution failed"));
+            processQueue();
           }
         } catch (err) {
-          console.error("[ae-bridge] Error parsing client message:", err);
+          logger.error("Error parsing client message:", err);
         }
       });
 
       ws.on("close", (code, reason) => {
         clearTimeout(authTimeout);
         const reasonStr = reason ? reason.toString() : "normal";
-        rejectPendingForSocket(ws, `Socket closed (${code}: ${reasonStr})`);
+        dropSocketCalls(ws, `Socket closed (${code}: ${reasonStr})`);
         if (activeClient === ws) {
-          console.error("[ae-bridge] Active After Effects panel disconnected");
+          logger.warn("Active After Effects panel disconnected");
           activeClient = null;
+          panelProtocolVersion = null;
+          panelVersion = null;
+          roundTripLatencyMs = null;
+          stopHeartbeat();
         }
       });
 
       ws.on("error", (err) => {
         clearTimeout(authTimeout);
-        console.error("[ae-bridge] Client socket error:", err);
-        rejectPendingForSocket(ws, `Socket error: ${err.message}`);
+        logger.error("Client socket error:", err);
+        dropSocketCalls(ws, `Socket error: ${err.message}`);
         if (activeClient === ws) {
           activeClient = null;
+          stopHeartbeat();
         }
       });
     });
 
     wss.on("error", (err) => {
-      console.error("[ae-bridge] WebSocket server error:", err);
+      logger.error("WebSocket server error:", err);
       reject(err);
     });
   });
@@ -220,49 +520,123 @@ export function startBridge(customPort?: number): Promise<void> {
 
 /**
  * Dispatch an ExtendScript method call to the active After Effects CEP panel over WebSocket.
+ * Calls are sequenced through a prioritized single-threaded queue.
  */
 export async function callAE(
   method: string,
   params: object = {},
-  timeoutMs = 60000
+  optionsOrTimeout: number | CallOptions = 60000,
+  extraOptions?: CallOptions
 ): Promise<unknown> {
-  if (!isConnected() || !activeClient) {
-    throw new Error(
-      "After Effects panel is not connected or authenticated. Open Window > Extensions > AE Bridge."
-    );
+  let timeoutMs = 60000;
+  let priority: CallPriority = "user";
+  let onProgress: ((percent: number, message?: string) => void) | undefined;
+  let signal: AbortSignal | undefined;
+
+  if (typeof optionsOrTimeout === "number") {
+    timeoutMs = optionsOrTimeout;
+    if (extraOptions) {
+      if (extraOptions.priority) priority = extraOptions.priority;
+      if (extraOptions.onProgress) onProgress = extraOptions.onProgress;
+      if (extraOptions.signal) signal = extraOptions.signal;
+    }
+  } else if (typeof optionsOrTimeout === "object") {
+    if (optionsOrTimeout.timeoutMs !== undefined) timeoutMs = optionsOrTimeout.timeoutMs;
+    if (optionsOrTimeout.priority !== undefined) priority = optionsOrTimeout.priority;
+    if (optionsOrTimeout.onProgress !== undefined) onProgress = optionsOrTimeout.onProgress;
+    if (optionsOrTimeout.signal !== undefined) signal = optionsOrTimeout.signal;
+  }
+
+  if (signal && signal.aborted) {
+    throw new Error(`Call '${method}' was aborted before dispatch`);
   }
 
   const id = randomUUID();
-  const requestPayload = JSON.stringify({ id, method, params });
-  const socket = activeClient;
 
   return new Promise<unknown>((resolve, reject) => {
-    const timer = setTimeout(() => {
-      pendingRequests.delete(id);
-      reject(new Error(`Call '${method}' timed out after ${timeoutMs / 1000}s waiting for After Effects response`));
-    }, timeoutMs);
+    let itemRef: QueueItem | null = null;
 
-    pendingRequests.set(id, { resolve, reject, timer, socket, method });
-
-    try {
-      socket.send(requestPayload);
-    } catch (err) {
-      clearTimeout(timer);
-      pendingRequests.delete(id);
-      reject(new Error(`Failed to send message to After Effects: ${(err as Error).message}`));
+    if (signal) {
+      signal.addEventListener("abort", () => {
+        if (itemRef) {
+          const idx = requestQueue.indexOf(itemRef);
+          if (idx !== -1) {
+            requestQueue.splice(idx, 1);
+            reject(new Error(`Call '${method}' was aborted by caller`));
+          }
+        }
+      });
     }
+
+    itemRef = {
+      id,
+      method,
+      params,
+      priority,
+      timeoutMs,
+      enqueuedAt: Date.now(),
+      onProgress,
+      resolve,
+      reject
+    };
+
+    enqueueRequest(itemRef);
   });
+}
+
+export interface BridgeStatusReport {
+  connected: boolean;
+  protocolVersion: number | null;
+  serverVersion: string;
+  panelVersion: string | null;
+  panelCapabilities: string[];
+  latencyMs: number | null;
+  aeVersion: string | null;
+  activeProject: string | null;
+  queueDepth: number;
+  uptimeSeconds: number;
+  memory: {
+    rssMb: number;
+    heapUsedMb: number;
+  };
+}
+
+export function getBridgeStatus(): BridgeStatusReport {
+  const mem = process.memoryUsage();
+  return {
+    connected: isConnected(),
+    protocolVersion: panelProtocolVersion,
+    serverVersion: VERSION,
+    panelVersion,
+    panelCapabilities,
+    latencyMs: roundTripLatencyMs,
+    aeVersion: cachedAeVersion,
+    activeProject: cachedActiveProject,
+    queueDepth: requestQueue.length + (activeExecution ? 1 : 0),
+    uptimeSeconds: Math.floor((Date.now() - serverStartTime) / 1000),
+    memory: {
+      rssMb: Math.round((mem.rss / (1024 * 1024)) * 100) / 100,
+      heapUsedMb: Math.round((mem.heapUsed / (1024 * 1024)) * 100) / 100
+    }
+  };
 }
 
 /**
  * Stops the WebSocket server, terminates active clients, and rejects all pending calls.
  */
 export async function stopBridge(): Promise<void> {
-  for (const [id, pending] of pendingRequests.entries()) {
-    clearTimeout(pending.timer);
-    pending.reject(new Error("Server is shutting down"));
+  stopHeartbeat();
+
+  if (activeExecution) {
+    clearTimeout(activeExecution.timer);
+    activeExecution.item.reject(new Error("Server is shutting down"));
+    activeExecution = null;
   }
-  pendingRequests.clear();
+
+  while (requestQueue.length > 0) {
+    const item = requestQueue.shift()!;
+    item.reject(new Error("Server is shutting down"));
+  }
 
   if (activeClient) {
     activeClient.on("error", () => {});
@@ -278,4 +652,8 @@ export async function stopBridge(): Promise<void> {
     });
     wss = null;
   }
+
+  panelProtocolVersion = null;
+  panelVersion = null;
+  roundTripLatencyMs = null;
 }

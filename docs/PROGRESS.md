@@ -36,3 +36,20 @@
 - **Blockers**: None.
 
 ---
+
+## Phase 2 - Protocol & Reliability
+- **Timestamp**: 2026-11-26T20:06:00+05:30
+- **Summary**:
+  - Upgraded handshake to Protocol v2 with capability negotiation (`priorityQueue`, `heartbeat`, `structuredErrors`, `progress`).
+  - Implemented bidirectional heartbeat ping/pong (5s interval, 10s timeout, round-trip latency tracking).
+  - Implemented exponential backoff with +/- 20% random jitter on CEP panel auto-reconnection (500ms to 5s max).
+  - Built single-threaded FIFO request queue with 3 priority tiers (`system` > `user` > `batch`) and caller cancellation support.
+  - Implemented structured ExtendScript `BridgeError` capturing error name, line, file, and callstack.
+  - Added new MCP tool `ae_bridge_status` returning connection state, latency, AE version, queue depth, panel version, memory, and uptime.
+  - Added non-disruptive `doctor_ping` probe in `doctor` CLI for real-time live round-trip latency checks.
+  - Implemented zero-stdout rotating file logger writing to `$AE_BRIDGE_HOME/logs/bridge.log` (5 MB max, 3 backups).
+  - Logged decisions DEC-006 through DEC-009 in `docs/DECISIONS.md`.
+- **Test Results**: 13 test files, 63 vitest tests passing (including new `test/phase2-reliability.test.ts`).
+- **Blockers**: None.
+
+---

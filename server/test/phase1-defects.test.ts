@@ -127,7 +127,7 @@ describe("Phase 1 Defects & Regression Suite", () => {
         }
       });
       goodWs.on("open", () => {
-        goodWs.send(JSON.stringify({ type: "auth", token }));
+        goodWs.send(JSON.stringify({ type: "auth", token, protocolVersion: 2 }));
       });
       setTimeout(() => resolve(false), 2000);
     });

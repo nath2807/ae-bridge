@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { callAE } from "../bridge.js";
+import { callAE, getBridgeStatus } from "../bridge.js";
 
 function formatResult(value: unknown): string {
   if (typeof value === "string") return value;
@@ -78,6 +78,19 @@ export function registerCoreTools(server: McpServer): void {
           isError: true
         };
       }
+    }
+  );
+
+  // 4. ae_bridge_status
+  server.tool(
+    "ae_bridge_status",
+    "Inspect the health, connection status, round-trip latency, queue depth, and memory telemetry of the AE Bridge connection.",
+    {},
+    async () => {
+      const status = getBridgeStatus();
+      return {
+        content: [{ type: "text", text: formatResult(status) }]
+      };
     }
   );
 }
