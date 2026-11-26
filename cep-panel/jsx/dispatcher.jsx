@@ -44,6 +44,9 @@
             },
 
             executeScript: function (params) {
+                if (!params || params.allowRawScripts !== true) {
+                    throw new Error("Raw ExtendScript execution is disabled by the dispatcher");
+                }
                 if (!params || typeof params.code !== "string") {
                     throw new Error("Missing code parameter");
                 }

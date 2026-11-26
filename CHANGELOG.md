@@ -4,6 +4,11 @@ All notable changes to the AE Bridge project are documented in this file.
 
 ---
 
+## [Unreleased]
+
+### Security
+- **Breaking:** `ae_execute_extendscript` is now disabled unless `AE_BRIDGE_ALLOW_RAW_SCRIPTS=true` is set (case-insensitive). The CEP dispatcher also requires an explicit execution flag.
+
 ## [1.2.0] - 2026-11-24
 
 ### Added

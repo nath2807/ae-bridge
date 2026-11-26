@@ -91,6 +91,10 @@ To manually specify or override the Blender binary:
 2. **Via MCP Tool:** Run `blender_set_path` with `{ "path": "<path-to-blender>" }` to persist it in `~/.ae-bridge/state.json`.
 3. **Verify:** Run `blender_status` to inspect GPU hardware detection, active engine, and Poly Haven HDRI directory.
 
+## Raw ExtendScript (Opt-in)
+
+`ae_execute_extendscript` is disabled by default. Enable it only when needed by setting `AE_BRIDGE_ALLOW_RAW_SCRIPTS=true` in the MCP server environment. This permits arbitrary code execution inside After Effects; dedicated `ae_*` tools remain available without this setting.
+
 ---
 
 ## Quick Start (5 Steps)

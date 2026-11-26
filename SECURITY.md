@@ -14,14 +14,14 @@ On initial startup, AE Bridge generates a cryptographically secure 32-byte hexad
 - Any incoming WebSocket connection must transmit `{ type: "auth", token: "<token>" }` as its first message within 3.0 seconds.
 - Connections that fail or time out are rejected and closed immediately.
 
-### 3. Disabling Raw ExtendScript Execution
-By default, the `ae_execute_extendscript` tool is available as a fallback for advanced ExtendScript operations. In sensitive environments, raw code evaluation can be disabled completely by setting the environment variable:
+### 3. Opting In to Raw ExtendScript Execution
+The `ae_execute_extendscript` tool is disabled unless raw code execution is explicitly enabled. To opt in:
 
 ```bash
-export AE_BRIDGE_ALLOW_RAW_SCRIPTS="false"
+export AE_BRIDGE_ALLOW_RAW_SCRIPTS="true"
 ```
 
-When set to `"false"`, `ae_execute_extendscript` rejects all execution attempts. AI agents can only interact with After Effects through predefined, sandboxed `ae_*` tool calls.
+Only the value `true` (case-insensitive, with no surrounding whitespace) enables this tool. Unset values and all other values disable it. When enabled, raw code can perform any action available to After Effects; use dedicated `ae_*` tools whenever possible.
 
 ---
 

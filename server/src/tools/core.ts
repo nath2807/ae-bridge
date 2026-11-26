@@ -2,6 +2,10 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { callAE } from "../bridge.js";
 
+export function rawScriptsEnabled(): boolean {
+  return process.env.AE_BRIDGE_ALLOW_RAW_SCRIPTS?.toLowerCase() === "true";
+}
+
 function formatResult(value: unknown): string {
   if (typeof value === "string") return value;
   return JSON.stringify(value, null, 2);
@@ -56,19 +60,19 @@ export function registerCoreTools(server: McpServer): void {
       code: z.string().describe("ExtendScript code to execute in After Effects")
     },
     async ({ code }) => {
-      if (process.env.AE_BRIDGE_ALLOW_RAW_SCRIPTS === "false") {
+      if (!rawScriptsEnabled()) {
         return {
           content: [
             {
               type: "text",
-              text: "ae_execute_extendscript is disabled by configuration (AE_BRIDGE_ALLOW_RAW_SCRIPTS=false). Use dedicated ae_* tools instead."
+              text: "ae_execute_extendscript is disabled by default. Set AE_BRIDGE_ALLOW_RAW_SCRIPTS=true to enable it. Use dedicated ae_* tools instead."
             }
           ],
           isError: true
         };
       }
       try {
-        const result = await callAE("executeScript", { code });
+        const result = await callAE("executeScript", { code, allowRawScripts: true });
         return {
           content: [{ type: "text", text: formatResult(result) }]
         };

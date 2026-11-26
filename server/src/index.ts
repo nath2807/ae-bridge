@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { startBridge } from "./bridge.js";
-import { registerCoreTools } from "./tools/core.js";
+import { rawScriptsEnabled, registerCoreTools } from "./tools/core.js";
 import { registerCompTools } from "./tools/comps.js";
 import { registerLayerTools } from "./tools/layers.js";
 import { registerAnimationTools } from "./tools/animation.js";
@@ -43,6 +43,9 @@ import { registerPrompts } from "./prompts.js";
 
 export async function runServer(): Promise<void> {
     console.error("[ae-bridge] Starting server v1.2.0...");
+    if (rawScriptsEnabled()) {
+        console.error("[ae-bridge] WARNING: Raw ExtendScript execution is enabled; agents can run arbitrary code in After Effects.");
+    }
 
     await cleanOldPreviews();
 
