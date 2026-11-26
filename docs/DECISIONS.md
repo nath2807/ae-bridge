@@ -201,13 +201,15 @@ This document records architectural decisions, evaluated alternatives, and ratio
 
 ---
 
-## DEC-020: Blender Engine Enhancements (Denoiser, Turntable, and Spec Validation)
+## DEC-021: HostAdapter Abstraction (CEP and UXP)
 - **Date**: 2026-11-26
-- **Context**: 3D product visualization requires automated 360-degree turntable orbits, denoising configuration, and fast schema validation before starting long renders.
-- **Decision**: Add `denoiser` option to `sceneSpecSchema`, procedural `turntable` camera trajectory generator, and `blender_validate_spec` tool for instant pre-flight validation.
+- **Context**: Adobe is transitioning Creative Cloud extensions from CEP (Common Extensibility Platform) to UXP (Unified Extensibility Platform). The bridge must support this architectural evolution without breaking CEP in After Effects 2024-2026.
+- **Decision**: Abstract the host environment behind a polymorphic `HostAdapter` interface. Implement `CepHostAdapter` (wrapping the WebSocket and ExtendScript runtime) and `UxpHostAdapter` (modeling modern V8 direct execution, `executeAsModal` transaction locking, and UXP manifest permissions).
 - **Alternatives Considered**:
-  - *Manual keyframe generation for turntables*: Complex and error-prone in client prompts.
-- **Reason**: Simplifies 3D product showcase workflows to a single declarative parameter.
+  - *Hard break to UXP immediately*: Impossible because UXP for After Effects is still rolling out and lacks full third-party production parity.
+  - *Keep WebSocket tightly coupled without abstraction*: Would necessitate massive, risky refactors when CEP is deprecated.
+- **Reason**: Provides zero-downtime forward compatibility and a clean migration path.
+
 
 
 

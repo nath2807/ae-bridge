@@ -132,3 +132,17 @@
 - **Blockers**: None.
 
 ---
+
+## Phase 8 - UXP Future-Proofing
+- **Timestamp**: 2026-11-26T20:48:30+05:30
+- **Summary**:
+  - Abstracted the host environment behind a polymorphic `HostAdapter` interface (`server/src/adapter/interface.ts`).
+  - Implemented `CepHostAdapter` (`server/src/adapter/cep.ts`) wrapping WebSocket connection lifecycle and ExtendScript ES3 dispatcher.
+  - Implemented `UxpHostAdapter` (`server/src/adapter/uxp.ts`) modeling Adobe's modern UXP environment: V8 ECMAScript direct execution, `executeAsModal` transaction locking (preventing concurrent/nested mutations), manifest permission enforcement (`requiredPermissions.network.domains`), and direct API handler dispatching.
+  - Authored comprehensive architectural migration guide `docs/uxp-migration.md`.
+  - Added test suite `server/test/phase8-adapter.test.ts` verifying polymorphic contracts, manifest permissions, transaction wrappers, direct API handling, and modern V8 code execution.
+  - Logged decision DEC-021 in `docs/DECISIONS.md`.
+- **Test Results**: 19 vitest files (97 tests) + 6 Python tests passing.
+- **Blockers**: None.
+
+---
