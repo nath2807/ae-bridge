@@ -1,6 +1,6 @@
 # AE Bridge Tools Reference
 
-Auto-generated reference documentation for all **169 MCP tools** provided by the AE Bridge server.
+Auto-generated reference documentation for all **173 MCP tools** provided by the AE Bridge server.
 
 ## Table of Contents
 
@@ -28,7 +28,7 @@ Auto-generated reference documentation for all **169 MCP tools** provided by the
 - [Vision & Preview](#vision-preview) (4 tools)
 - [Quality Assurance (QA)](#quality-assurance-qa-) (3 tools)
 - [Project & Checkpoints](#project-checkpoints) (10 tools)
-- [Rendering & Export](#rendering-export) (6 tools)
+- [Rendering & Export](#rendering-export) (10 tools)
 - [Social Variants & Reframe](#social-variants-reframe) (2 tools)
 - [Essential Graphics & Templates](#essential-graphics-templates) (4 tools)
 - [Asset & Beat Analysis](#asset-beat-analysis) (3 tools)
@@ -1441,7 +1441,7 @@ Render a composition via Adobe Media Encoder (mode='ame', non-blocking) or direc
 | `outputPath` | `string` | No | Explicit target file path. If omitted, generates inside <Videos>/ae-bridge-renders | - |
 | `fileName` | `string` | No | Optional custom file name without directory | - |
 | `workAreaOnly` | `boolean` | No | Whether to render only the composition work area (default true) | `true` |
-| `mode` | `"ae" | "ame"` | No | Render engine: 'ame' (queues in Adobe Media Encoder, non-blocking) or 'ae' (direct in-AE blocking render) | `ame` |
+| `mode` | `"ae" | "ame" | "aerender"` | No | Render engine: 'ame' (queues in Adobe Media Encoder, non-blocking), 'ae' (direct in-AE blocking render), or 'aerender' (background headless CLI render job) | `ame` |
 
 ### `ae_render_status`
 
@@ -1459,6 +1459,47 @@ Queue multiple compositions in batch for rendering with individual preset mappin
 |---|---|---|---|---|
 | `items` | `array` | **Yes** | List of render queue items | - |
 | `mode` | `"ae" | "ame"` | No | Render engine ('ame' recommended for batches) | `ame` |
+
+### `ae_render_job_start`
+
+Launch a background headless aerender CLI job without blocking After Effects or the AI session. Tracks frame-by-frame progress in $AE_BRIDGE_HOME/render_jobs.json.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `compRef` | `object` | No | Reference to a composition (by ID or name). If omitted, the active composition is used. | - |
+| `compName` | `string` | No | Composition name to render | - |
+| `projectPath` | `string` | No | Path to .aep project file. If omitted, uses current AE project if saved | - |
+| `outputPath` | `string` | No | Output destination file path | - |
+| `preset` | `"mp4High" | "mp4Web" | "prores422" | "proresProxy" | "prores4444Alpha" | "pngSequence" | "pngAlphaSequence" | "wav"` | No | Render preset mapping | - |
+| `outputTemplate` | `string` | No | AE Output Module template name (e.g. 'AE Bridge H264 High') | - |
+| `renderSettingsTemplate` | `string` | No | AE Render Settings template name (e.g. 'Best Settings') | - |
+| `startFrame` | `integer` | No | Starting frame number | - |
+| `endFrame` | `integer` | No | Ending frame number | - |
+
+### `ae_render_job_status`
+
+Query the live status, frame progress, percent completion, elapsed time, and log output of an aerender background job.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `jobId` | `string` | **Yes** | ID of the render job to query | - |
+
+### `ae_render_job_cancel`
+
+Cancel and terminate an active aerender background process.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `jobId` | `string` | **Yes** | ID of the render job to cancel | - |
+
+### `ae_render_job_list`
+
+List all tracked background aerender jobs with their status, progress, and output paths.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `limit` | `integer` | No | Maximum number of jobs to return (default 20) | `20` |
+| `status` | `"queued" | "running" | "completed" | "failed" | "cancelled"` | No | Filter by job status | - |
 
 ### `ae_export_frame`
 

@@ -6,6 +6,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import sharp from "sharp";
 import { callAE } from "../bridge.js";
 import { compRefSchema, toolSuccess, toolError } from "./schemas.js";
+import { startRenderJob, getRenderJob, cancelRenderJob, listRenderJobs } from "../render/jobs.js";
 
 export const RENDER_PRESETS = [
   "mp4High",
@@ -79,7 +80,7 @@ export function registerRenderTools(server: McpServer): void {
       outputPath: z.string().optional().describe("Explicit target file path. If omitted, generates inside <Videos>/ae-bridge-renders"),
       fileName: z.string().optional().describe("Optional custom file name without directory"),
       workAreaOnly: z.boolean().optional().default(true).describe("Whether to render only the composition work area (default true)"),
-      mode: z.enum(["ae", "ame"]).optional().default("ame").describe("Render engine: 'ame' (queues in Adobe Media Encoder, non-blocking) or 'ae' (direct in-AE blocking render)")
+      mode: z.enum(["ae", "ame", "aerender"]).optional().default("ame").describe("Render engine: 'ame' (queues in Adobe Media Encoder, non-blocking), 'ae' (direct in-AE blocking render), or 'aerender' (background headless CLI render job)")
     },
     async (params) => {
       try {
@@ -94,6 +95,25 @@ export function registerRenderTools(server: McpServer): void {
           targetPath = path.join(renderDir, fName).replace(/\\/g, "/");
         } else {
           targetPath = path.resolve(targetPath).replace(/\\/g, "/");
+        }
+
+        if (params.mode === "aerender") {
+          const compInfo = (await callAE("getComp", { compRef: params.compRef })) as { name: string };
+          const job = startRenderJob({
+            compName: compInfo.name,
+            outputPath: targetPath,
+            preset: params.preset
+          });
+
+          return toolSuccess({
+            jobId: job.id,
+            status: job.status,
+            compName: compInfo.name,
+            outputPath: targetPath,
+            preset: params.preset,
+            mode: "aerender",
+            message: "aerender background job started. Monitor progress with ae_render_job_status."
+          });
         }
 
         // In-AE rendering can take a long time; allow up to 2 hours
@@ -210,6 +230,107 @@ export function registerRenderTools(server: McpServer): void {
       } catch (err) {
         return toolError(err);
       }
+    }
+  );
+
+  // 5. ae_render_job_start
+  server.tool(
+    "ae_render_job_start",
+    "Launch a background headless aerender CLI job without blocking After Effects or the AI session. Tracks frame-by-frame progress in $AE_BRIDGE_HOME/render_jobs.json.",
+    {
+      compRef: compRefSchema.optional(),
+      compName: z.string().optional().describe("Composition name to render"),
+      projectPath: z.string().optional().describe("Path to .aep project file. If omitted, uses current AE project if saved"),
+      outputPath: z.string().optional().describe("Output destination file path"),
+      preset: z.enum(RENDER_PRESETS).optional().describe("Render preset mapping"),
+      outputTemplate: z.string().optional().describe("AE Output Module template name (e.g. 'AE Bridge H264 High')"),
+      renderSettingsTemplate: z.string().optional().describe("AE Render Settings template name (e.g. 'Best Settings')"),
+      startFrame: z.number().int().min(0).optional().describe("Starting frame number"),
+      endFrame: z.number().int().min(0).optional().describe("Ending frame number")
+    },
+    async (params) => {
+      try {
+        let compName = params.compName;
+        if (!compName) {
+          const compInfo = (await callAE("getComp", { compRef: params.compRef })) as { name: string };
+          compName = compInfo.name;
+        }
+
+        const renderDir = getDefaultRenderDir();
+        let targetPath = params.outputPath;
+        if (!targetPath) {
+          const safeName = compName.replace(/[<>:"/\\|?*]/g, "_");
+          const ext = params.preset ? getPresetExtension(params.preset) : ".mp4";
+          targetPath = path.join(renderDir, `${safeName}_aerender_${Date.now()}${ext}`).replace(/\\/g, "/");
+        } else {
+          targetPath = path.resolve(targetPath).replace(/\\/g, "/");
+        }
+
+        const job = startRenderJob({
+          compName,
+          projectPath: params.projectPath,
+          outputPath: targetPath,
+          preset: params.preset,
+          outputTemplate: params.outputTemplate,
+          renderSettingsTemplate: params.renderSettingsTemplate,
+          startFrame: params.startFrame,
+          endFrame: params.endFrame
+        });
+
+        return toolSuccess(job);
+      } catch (err) {
+        return toolError(err);
+      }
+    }
+  );
+
+  // 6. ae_render_job_status
+  server.tool(
+    "ae_render_job_status",
+    "Query the live status, frame progress, percent completion, elapsed time, and log output of an aerender background job.",
+    {
+      jobId: z.string().describe("ID of the render job to query")
+    },
+    async ({ jobId }) => {
+      const job = getRenderJob(jobId);
+      if (!job) {
+        return toolError(`Render job not found: ${jobId}`);
+      }
+      return toolSuccess(job);
+    }
+  );
+
+  // 7. ae_render_job_cancel
+  server.tool(
+    "ae_render_job_cancel",
+    "Cancel and terminate an active aerender background process.",
+    {
+      jobId: z.string().describe("ID of the render job to cancel")
+    },
+    async ({ jobId }) => {
+      const cancelled = cancelRenderJob(jobId);
+      if (!cancelled) {
+        const job = getRenderJob(jobId);
+        if (!job) {
+          return toolError(`Render job not found: ${jobId}`);
+        }
+        return toolSuccess({ jobId, cancelled: false, status: job.status, message: "Job could not be cancelled or already finished." });
+      }
+      return toolSuccess({ jobId, cancelled: true, status: "cancelled", message: "Render job cancelled and process terminated." });
+    }
+  );
+
+  // 8. ae_render_job_list
+  server.tool(
+    "ae_render_job_list",
+    "List all tracked background aerender jobs with their status, progress, and output paths.",
+    {
+      limit: z.number().int().min(1).max(100).optional().default(20).describe("Maximum number of jobs to return (default 20)"),
+      status: z.enum(["queued", "running", "completed", "failed", "cancelled"]).optional().describe("Filter by job status")
+    },
+    async ({ limit, status }) => {
+      const jobs = listRenderJobs(limit, status);
+      return toolSuccess({ count: jobs.length, jobs });
     }
   );
 

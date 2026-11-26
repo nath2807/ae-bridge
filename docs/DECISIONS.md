@@ -149,5 +149,26 @@ This document records architectural decisions, evaluated alternatives, and ratio
   - *Require separate call to `ae_preview_frame`*: Requires two round-trips and extra prompt orchestration.
 - **Reason**: Unified visual and textual quality assurance in a single tool call.
 
+---
+
+## DEC-015: Headless aerender Background Job Engine
+- **Date**: 2026-11-26
+- **Context**: In-app After Effects renders (`mode: "ae"`) block the UI and ExtendScript engine for up to 2 hours, preventing further interaction. While Adobe Media Encoder (`mode: "ame"`) queues externally, it lacks programmatic CLI progress reporting.
+- **Decision**: Add `mode: "aerender"` and dedicated render job management tools (`ae_render_job_start`, `ae_render_job_status`, `ae_render_job_cancel`, `ae_render_job_list`) spawning background `aerender` processes. Frame progress is parsed in real time and persisted to `$AE_BRIDGE_HOME/render_jobs.json`.
+- **Alternatives Considered**:
+  - *Rely solely on in-app rendering*: Locks ExtendScript thread and blocks concurrent commands.
+- **Reason**: Enables non-blocking, headless, high-throughput renders with frame-by-frame observability.
+
+---
+
+## DEC-016: Cross-Platform aerender Process Spawning Safety
+- **Date**: 2026-11-26
+- **Context**: Node.js 20+ introduced strict security validations on Windows preventing execution of `.bat`/`.cmd` files with `shell: false` (CVE-2024-27980). Setting `shell: true` with arguments emits deprecation warning `DEP0190`.
+- **Decision**: On Windows, when executing batch runners or wrappers, explicitly route execution through `process.env.ComSpec || "cmd.exe"` with `["/d", "/s", "/c", ...]` while keeping `shell: false`. For standard `.exe` binaries, invoke directly without `cmd.exe`.
+- **Alternatives Considered**:
+  - *Globally setting `shell: true`*: Insecure argument concatenation and Node.js deprecation warnings.
+- **Reason**: Secure, warning-free process execution across Windows, macOS, and Linux.
+
+
 
 

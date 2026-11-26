@@ -97,3 +97,20 @@
 - **Blockers**: None.
 
 ---
+
+## Phase 6 - Non-Blocking Render Pipeline
+- **Timestamp**: 2026-11-26T20:34:00+05:30
+- **Summary**:
+  - Implemented background `aerender` spawner (`server/src/render/jobs.ts`) and locator (`server/src/render/locator.ts`).
+  - Implemented persistent job management writing state to `$AE_BRIDGE_HOME/render_jobs.json` with frame-by-frame progress parsing and percent tracking.
+  - Added tools: `ae_render_job_start`, `ae_render_job_status`, `ae_render_job_cancel`, and `ae_render_job_list`.
+  - Updated `ae_render` to support `mode: "aerender"` alongside `"ae"` and `"ame"`.
+  - Hooked `killAllRenderJobs()` into server graceful shutdown lifecycle.
+  - Preserved bitrate-aware template lookup logic ("AE Bridge H264 High") and documented in `docs/troubleshooting.md`.
+  - Regenerated `docs/tools.md` (now 173 tools documented).
+  - Added test suite `server/test/phase6-render.test.ts`.
+  - Logged decisions DEC-015 and DEC-016 in `docs/DECISIONS.md`.
+- **Test Results**: 17 vitest files (82 tests) + 6 Python tests passing.
+- **Blockers**: None.
+
+---

@@ -4,6 +4,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { startBridge, stopBridge, setCallDispatcher, getOrCreateAuthToken } from "./bridge.js";
 import { killAllBlenderJobs } from "./blender/jobs.js";
+import { killAllRenderJobs } from "./render/jobs.js";
 import { VERSION } from "./utils/paths.js";
 import { acquireHubOrProxy, removeLockFile } from "./hub/lock.js";
 import { startHubIpcServer, stopHubIpcServer, startProxyClient, stopProxyClient, callHubProxy } from "./hub/ipc.js";
@@ -84,6 +85,7 @@ async function handleShutdown(signal: string): Promise<void> {
     console.error(`[ae-bridge] Received ${signal}, shutting down gracefully...`);
     try {
         killAllBlenderJobs();
+        killAllRenderJobs();
         setCallDispatcher(null);
         stopProxyClient();
         await stopHubIpcServer();

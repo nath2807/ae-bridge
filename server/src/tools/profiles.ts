@@ -34,7 +34,8 @@ const MINIMAL_TOOLS = new Set<string>([
   "ae_qa_check",
   "ae_save_project",
   "ae_render",
-  "ae_render_status"
+  "ae_render_status",
+  "ae_render_job_status"
 ]);
 
 // 2. Blender Profile: 3D generation, camera sync, depth pass, and core comp tools (~38 tools)
@@ -58,7 +59,10 @@ const BLENDER_TOOLS = new Set<string>([
   "ae_contact_sheet",
   "ae_camera_rig",
   "ae_camera_move",
-  "ae_setup_lighting"
+  "ae_setup_lighting",
+  "ae_render_job_start",
+  "ae_render_job_cancel",
+  "ae_render_job_list"
 ]);
 
 // 3. Standard Profile: comprehensive everyday motion graphics & video editing (~85 tools, default)
@@ -127,6 +131,9 @@ const STANDARD_TOOLS = new Set<string>([
   "ae_list_output_templates",
   "ae_export_frame",
   "ae_export_gif",
+  "ae_render_job_start",
+  "ae_render_job_cancel",
+  "ae_render_job_list",
   "ae_create_format_variant",
   "ae_create_all_social_variants",
   "ae_detect_beats",
