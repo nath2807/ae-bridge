@@ -679,26 +679,63 @@ async function handleDoctor(isJson = false): Promise<void> {
   }
 }
 
-function handleConfig(clientArg?: string): void {
-  const client = (clientArg || "antigravity").toLowerCase();
+export interface ConfigOptions {
+  client: string;
+  write?: boolean;
+  workspace?: boolean;
+  global?: boolean;
+}
+
+export function resolveClientConfigPath(client: string, scope: "global" | "workspace"): string {
+  const platform = os.platform();
+  const lower = client.toLowerCase();
+
+  if (lower === "antigravity") {
+    if (scope === "workspace") {
+      return path.resolve(process.cwd(), ".antigravity", "mcp_config.json");
+    }
+    return path.join(os.homedir(), ".gemini", "antigravity", "mcp_config.json");
+  }
+
+  if (lower === "claude" || lower === "claudedesktop") {
+    if (platform === "darwin") {
+      return path.join(os.homedir(), "Library", "Application Support", "Claude", "claude_desktop_config.json");
+    }
+    const appData = process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming");
+    return path.join(appData, "Claude", "claude_desktop_config.json");
+  }
+
+  if (lower === "cursor") {
+    if (scope === "global") {
+      return path.join(os.homedir(), ".cursor", "mcp.json");
+    }
+    return path.resolve(process.cwd(), ".cursor", "mcp.json");
+  }
+
+  if (lower === "vscode") {
+    return path.resolve(process.cwd(), ".vscode", "settings.json");
+  }
+
+  throw new Error(`Cannot resolve configuration path for unknown client: '${client}'`);
+}
+
+export function handleConfig(options: ConfigOptions): void {
+  const client = (options.client || "antigravity").toLowerCase();
   const cliPath = path.resolve(__dirname, "cli.js").replace(/\\/g, "/");
+
+  const supported = ["antigravity", "claude", "claudedesktop", "cursor", "vscode"];
+  if (!supported.includes(client)) {
+    console.error(`Error: Unknown client '${options.client}'. Supported clients: antigravity, claude, cursor, vscode`);
+    process.exit(1);
+  }
 
   let configObj: any = null;
 
   switch (client) {
     case "claude":
     case "claudedesktop":
-      configObj = {
-        mcpServers: {
-          "ae-bridge": {
-            command: "node",
-            args: [cliPath]
-          }
-        }
-      };
-      break;
-
     case "cursor":
+    case "antigravity":
       configObj = {
         mcpServers: {
           "ae-bridge": {
@@ -721,24 +758,46 @@ function handleConfig(clientArg?: string): void {
         }
       };
       break;
-
-    case "antigravity":
-      configObj = {
-        mcpServers: {
-          "ae-bridge": {
-            command: "node",
-            args: [cliPath]
-          }
-        }
-      };
-      break;
-
-    default:
-      console.error(`Error: Unknown client '${clientArg}'. Supported clients: antigravity, claude, cursor, vscode`);
-      process.exit(1);
   }
 
-  console.log(JSON.stringify(configObj, null, 2));
+  if (!options.write) {
+    console.log(JSON.stringify(configObj, null, 2));
+    return;
+  }
+
+  const scope: "global" | "workspace" = options.workspace ? "workspace" : "global";
+  const targetPath = resolveClientConfigPath(client, scope);
+  const targetDir = path.dirname(targetPath);
+
+  if (!fs.existsSync(targetDir)) {
+    fs.mkdirSync(targetDir, { recursive: true });
+  }
+
+  let finalConfig: any = {};
+  if (fs.existsSync(targetPath)) {
+    try {
+      const existingRaw = fs.readFileSync(targetPath, "utf-8");
+      finalConfig = JSON.parse(existingRaw);
+
+      const backupPath = `${targetPath}.backup.${Date.now()}`;
+      fs.writeFileSync(backupPath, existingRaw, "utf-8");
+      console.log(`  ✓ Created configuration backup: ${backupPath}`);
+    } catch {
+      finalConfig = {};
+    }
+  }
+
+  if (client === "vscode") {
+    if (!finalConfig.mcp) finalConfig.mcp = {};
+    if (!finalConfig.mcp.servers) finalConfig.mcp.servers = {};
+    finalConfig.mcp.servers["ae-bridge"] = { command: "node", args: [cliPath] };
+  } else {
+    if (!finalConfig.mcpServers) finalConfig.mcpServers = {};
+    finalConfig.mcpServers["ae-bridge"] = { command: "node", args: [cliPath] };
+  }
+
+  fs.writeFileSync(targetPath, JSON.stringify(finalConfig, null, 2), "utf-8");
+  console.log(`  ✓ Successfully updated '${client}' MCP configuration: ${targetPath}`);
 }
 
 function printUsage(): void {
@@ -749,12 +808,16 @@ USAGE:
   ae-bridge                           Start the MCP server over stdio
   ae-bridge install                   Install the CEP panel extension and set debug modes
   ae-bridge doctor [--json]           Inspect system dependencies, ports, and panel connectivity
-  ae-bridge config --client <name>    Output MCP client configuration JSON
+  ae-bridge config --client <name>    Output or install MCP client configuration
 
 OPTIONS:
-  --client    Target AI client: 'antigravity', 'claude', 'cursor', 'vscode'
-  --json      Output machine-readable JSON (supported by 'doctor')
-  --help, -h  Display this help menu
+  --client     Target AI client: 'antigravity', 'claude', 'cursor', 'vscode'
+  --write      Write configuration directly into the target client's settings file (creates backup)
+  --workspace  Write to workspace-local configuration (.antigravity/, .cursor/, .vscode/)
+  --global     Write to global user configuration (default)
+  --http [p]   Start optional HTTP/SSE server alongside stdio on port (default 8767)
+  --json       Output machine-readable JSON (supported by 'doctor')
+  --help, -h   Display this help menu
 `);
 }
 
@@ -762,10 +825,18 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const command = args[0] ? args[0].toLowerCase() : "";
 
-  if (!command || command === "start" || command === "serve") {
+  let httpPort: number | undefined;
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--http") {
+      httpPort = args[i + 1] && !args[i + 1].startsWith("-") ? Number(args[i + 1]) : 8767;
+      break;
+    }
+  }
+
+  if (!command || command === "start" || command === "serve" || command.startsWith("-")) {
     // Dynamic import to avoid loading heavy tool modules if running CLI utilities
     const { runServer } = await import("./index.js");
-    await runServer();
+    await runServer({ httpPort });
     return;
   }
 
@@ -782,13 +853,26 @@ async function main(): Promise<void> {
 
     case "config": {
       let client = "antigravity";
+      let write = false;
+      let workspace = false;
+      let isGlobal = false;
+
       for (let i = 1; i < args.length; i++) {
         if (args[i] === "--client" && args[i + 1]) {
           client = args[i + 1];
-          break;
+        }
+        if (args[i] === "--write") {
+          write = true;
+        }
+        if (args[i] === "--workspace") {
+          workspace = true;
+        }
+        if (args[i] === "--global") {
+          isGlobal = true;
         }
       }
-      handleConfig(client);
+
+      handleConfig({ client, write, workspace, global: isGlobal });
       break;
     }
 

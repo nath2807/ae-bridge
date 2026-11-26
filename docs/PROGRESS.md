@@ -67,3 +67,16 @@
 - **Blockers**: None.
 
 ---
+
+## Phase 4 - Multi-Client Hub & Proxy Architecture
+- **Timestamp**: 2026-11-26T20:18:00+05:30
+- **Summary**:
+  - Implemented single-instance Hub lockfile mechanism (`hub.lock`) tracking PID, port, IPC port, token path, and timestamps with stale process detection.
+  - Implemented Hub IPC WebSocket server (`127.0.0.1:8766`) and transparent Proxy Client architecture forwarding secondary client requests through the Hub's single-threaded queue.
+  - Implemented optional streamable HTTP bridge (`startHttpBridge`) supporting `/health`, `/status`, and `/call` endpoints with Bearer token authentication.
+  - Enhanced `ae-bridge config` with `--write`, `--workspace`, and `--global` flags, including automated `.backup` file creation before modifying client settings files.
+  - Logged decisions DEC-010 and DEC-011 in `docs/DECISIONS.md`.
+- **Test Results**: 15 vitest files (73 tests) + 6 Python tests passing.
+- **Blockers**: None.
+
+---

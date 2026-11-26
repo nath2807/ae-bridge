@@ -98,3 +98,24 @@ This document records architectural decisions, evaluated alternatives, and ratio
   - *Full auth handshake*: Would displace the active CEP panel and force it to reconnect.
 - **Reason**: Transparent and safe real-time system diagnostics.
 
+---
+
+## DEC-010: Multi-Client Hub & Proxy Architecture
+- **Date**: 2026-11-26
+- **Context**: When a user runs multiple concurrent AI sessions (e.g. Claude Desktop alongside Antigravity), previous versions crashed because port 8765 was bound and multiple connections displaced the CEP panel socket.
+- **Decision**: Implement a single-instance Hub with atomic lockfile (`$AE_BRIDGE_HOME/hub.lock`). The primary process claims the Hub role and opens an IPC WebSocket server (`127.0.0.1:8766`). Secondary processes detect the active Hub, operate as transparent MCP proxies, and route their tool dispatches through the Hub's prioritized single-threaded execution queue.
+- **Alternatives Considered**:
+  - *Multiple separate ports for CEP panel*: CEP panel can only connect to one WebSocket endpoint without user intervention.
+- **Reason**: Enables seamless multi-agent workflows across multiple editors without socket collisions or race conditions.
+
+---
+
+## DEC-011: Safe Config Mutation with Automatic Backups
+- **Date**: 2026-11-26
+- **Context**: Overwriting user MCP configurations in Claude Desktop or Antigravity can destroy other configured servers if not performed carefully.
+- **Decision**: In `ae-bridge config --write`, parse existing configuration JSON, merge the `ae-bridge` server definition, write a timestamped `.backup` file before writing changes, and support `--global` vs `--workspace` targeting.
+- **Alternatives Considered**:
+  - *Blind file overwrite*: High risk of data loss for user's existing MCP servers.
+- **Reason**: Non-destructive, user-friendly client installation.
+
+

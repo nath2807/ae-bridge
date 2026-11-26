@@ -80,6 +80,12 @@ let serverStartTime = Date.now();
 let cachedAeVersion: string | null = null;
 let cachedActiveProject: string | null = null;
 
+let customCallDispatcher: ((method: string, params: object, options?: any) => Promise<unknown>) | null = null;
+
+export function setCallDispatcher(fn: ((method: string, params: object, options?: any) => Promise<unknown>) | null): void {
+  customCallDispatcher = fn;
+}
+
 // Prioritized single-thread queue state
 const requestQueue: QueueItem[] = [];
 let activeExecution: ActiveCall | null = null;
@@ -122,6 +128,7 @@ export function getOrCreateAuthToken(): string {
 }
 
 export function isConnected(): boolean {
+  if (customCallDispatcher) return true;
   return activeClient !== null && activeClient.readyState === WebSocket.OPEN;
 }
 
@@ -549,6 +556,10 @@ export async function callAE(
 
   if (signal && signal.aborted) {
     throw new Error(`Call '${method}' was aborted before dispatch`);
+  }
+
+  if (customCallDispatcher) {
+    return customCallDispatcher(method, params, { timeoutMs, priority, onProgress });
   }
 
   const id = randomUUID();
