@@ -53,3 +53,17 @@
 - **Blockers**: None.
 
 ---
+
+## Phase 3 - Mock-AE Test Harness & CI
+- **Timestamp**: 2026-11-26T20:13:00+05:30
+- **Summary**:
+  - Built `MockAEPanel` harness (`server/test/harness/mock-panel.ts`) simulating the ExtendScript runtime, composition state, render queue, controllable latency, and error overrides.
+  - Implemented end-to-end integration test suite (`server/test/mock-integration.test.ts`) covering tool discovery, `ae_ping`, `ae_get_project_info`, `ae_create_comp`, `ae_bridge_status`, and structured error propagation.
+  - Added full tool surface assertion test verifying name, description length, and input schema validity across all registered tools.
+  - Built headless Python test suite (`blender/test/test_bpy_stub.py`) with a `bpy` stub testing compatibility layers, engine detection, and socket fallbacks without a Blender binary.
+  - Added `"test:python"` script in `server/package.json`.
+  - Upgraded GitHub Actions matrix in `.github/workflows/ci.yml` across Ubuntu, macOS, and Windows with Node 20 and 22, including Python tests.
+- **Test Results**: 14 vitest files (69 tests) + 6 Python tests passing.
+- **Blockers**: None.
+
+---
