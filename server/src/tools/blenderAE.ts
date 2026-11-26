@@ -4,7 +4,7 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { callAE } from "../bridge.js";
 import { compRefSchema, layerRefSchema, colorSchema, toolSuccess, toolError } from "./schemas.js";
-import { getJobRecord } from "../blender/jobs.js";
+import { getJobRecord, startBlenderJob } from "../blender/jobs.js";
 
 export function registerBlenderAETools(server: McpServer): void {
   // 1. ae_import_blender_render
@@ -101,6 +101,77 @@ export function registerBlenderAETools(server: McpServer): void {
       try {
         const result = await callAE("ae_depth_effects", params);
         return toolSuccess(result);
+      } catch (err) {
+        return toolError(err);
+      }
+    }
+  );
+
+  // 3. ae_import_3d_asset
+  server.tool(
+    "ae_import_3d_asset",
+    "Import a 3D model asset (glTF/GLB, USD/USDA/USDC/USDZ, FBX, or OBJ) into After Effects or the Blender 3D pipeline with material extraction, lighting, and camera sync.",
+    {
+      filePath: z.string().describe("Path to local 3D model asset (.glb, .gltf, .usd, .usdz, .fbx, .obj)"),
+      compRef: compRefSchema.optional(),
+      renderMode: z.enum(["ae_native", "blender"]).optional().default("blender").describe("Import pipeline: 'ae_native' for direct After Effects 3D layer (AE 2024+ for glTF/OBJ) or 'blender' for photoreal PBR rendered sequence with depth pass"),
+      materialPreset: z.string().optional().describe("Optional PBR material override for Blender pipeline"),
+      cameraMove: z.string().optional().default("turntable").describe("Camera move for Blender pipeline ('turntable', 'pushIn', 'orbit')"),
+      frames: z.number().int().min(1).max(300).optional().default(60).describe("Number of frames to render if using Blender pipeline")
+    },
+    async (params) => {
+      try {
+        const fullPath = path.resolve(params.filePath).replace(/\\/g, "/");
+        if (!fs.existsSync(fullPath)) {
+          throw new Error(`3D model file not found at: ${fullPath}`);
+        }
+
+        if (params.renderMode === "ae_native") {
+          const importRes = await callAE("ae_import_files", {
+            files: [fullPath],
+            compRef: params.compRef
+          });
+          return toolSuccess({
+            mode: "ae_native",
+            file: fullPath,
+            result: importRes
+          });
+        }
+
+        const job = startBlenderJob(
+          {
+            frames: { start: 1, end: params.frames || 60, fps: 30 },
+            resolution: [1920, 1080],
+            engine: "eevee",
+            quality: "final",
+            lighting: "studioDramatic",
+            objects: [
+              {
+                id: "imported_asset",
+                kind: "model",
+                params: { modelPath: fullPath },
+                material: params.materialPreset ? { preset: params.materialPreset as any } : undefined
+              }
+            ],
+            camera: {
+              lens: 50.0,
+              sensorWidth: 36.0,
+              move: (params.cameraMove as any) || "turntable",
+              curve: "smooth"
+            },
+            passes: ["depth"],
+            exportCamera: true
+          },
+          "render"
+        );
+
+        return toolSuccess({
+          mode: "blender",
+          jobId: job.id,
+          status: job.status,
+          outputDir: job.outputDir,
+          message: "3D asset render job started in Blender. Once completed, use ae_import_blender_render to import with depth pass and camera sync."
+        });
       } catch (err) {
         return toolError(err);
       }

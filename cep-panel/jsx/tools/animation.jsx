@@ -63,6 +63,67 @@
         return buildPropertyTree(root, depth);
     }
 
+    function describePropertyTree(params) {
+        var comp = findComp(params ? params.compRef : null);
+        var layer = findLayer(comp, params ? params.layerRef : null);
+        var maxDepth = (params && params.maxDepth !== undefined) ? Number(params.maxDepth) : 5;
+
+        function traverse(propGroup, currentDepth, currentPath) {
+            if (!propGroup || currentDepth > maxDepth) return null;
+            var isProp = (propGroup.propertyType === PropertyType.PROPERTY);
+            var node = {
+                name: propGroup.name,
+                matchName: propGroup.matchName,
+                path: currentPath,
+                propertyType: isProp ? "PROPERTY" : (propGroup.propertyType === PropertyType.INDEXED_GROUP ? "INDEXED_GROUP" : "NAMED_GROUP"),
+                depth: currentDepth
+            };
+
+            if (isProp) {
+                node.numKeys = propGroup.numKeys || 0;
+                node.hasExpression = !!propGroup.hasExpression;
+                node.expressionEnabled = !!propGroup.expressionEnabled;
+                if (propGroup.hasExpression) {
+                    node.expression = String(propGroup.expression || "");
+                }
+                node.isModified = !!propGroup.isModified;
+                node.canVaryOverTime = !!propGroup.canVaryOverTime;
+                node.value = extractSimpleValue(propGroup);
+                try {
+                    node.propertyValueType = String(propGroup.propertyValueType);
+                } catch (e) {}
+            } else if (propGroup.numProperties !== undefined) {
+                node.children = [];
+                for (var i = 1; i <= propGroup.numProperties; i++) {
+                    var child = propGroup.property(i);
+                    if (child) {
+                        var childPath = currentPath.slice(0);
+                        childPath.push(child.name);
+                        var childNode = traverse(child, currentDepth + 1, childPath);
+                        if (childNode) {
+                            node.children.push(childNode);
+                        }
+                    }
+                }
+            }
+
+            return node;
+        }
+
+        var root = layer;
+        var startPath = [];
+        if (params && params.path) {
+            root = resolveProperty(layer, params.path);
+            startPath = (params.path instanceof Array) ? params.path : [String(params.path)];
+        }
+
+        return {
+            layerName: layer.name,
+            layerIndex: layer.index,
+            tree: traverse(root, 0, startPath)
+        };
+    }
+
     function getProperty(params) {
         if (!params || !params.path) {
             throw new Error("Property path is required for getProperty.");
@@ -494,4 +555,6 @@
     h.setExpression = setExpression;
     h.ae_animate = animateLayer;
     h.animateLayer = animateLayer;
+    h.ae_describe_property_tree = describePropertyTree;
+    h.describePropertyTree = describePropertyTree;
 })();

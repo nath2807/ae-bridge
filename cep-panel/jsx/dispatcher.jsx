@@ -120,6 +120,18 @@
 
             ae_batch: function (params) {
                 return this.batch(params);
+            },
+
+            undo: function (params) {
+                var steps = (params && params.steps) ? Number(params.steps) : 1;
+                for (var s = 0; s < steps; s++) {
+                    app.executeCommand(16);
+                }
+                return { success: true, stepsUndone: steps };
+            },
+
+            ae_undo: function (params) {
+                return this.undo(params);
             }
         },
 

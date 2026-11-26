@@ -167,4 +167,24 @@ export function registerAnimationTools(server: McpServer): void {
       }
     }
   );
+
+  // 8. ae_describe_property_tree
+  server.tool(
+    "ae_describe_property_tree",
+    "Deeply inspect and introspect a layer's entire property hierarchy: match names, types, current values, expressions, keyframe counts, modification states, and property paths.",
+    {
+      compRef: compRefSchema.optional(),
+      layerRef: layerRefSchema.describe("Target layer to inspect"),
+      path: propertyPathSchema.optional().describe("Optional property or group path to start from (e.g. ['Transform'] or ['Effects'])"),
+      maxDepth: z.number().int().min(1).max(10).optional().default(5).describe("Maximum recursion depth (default 5)")
+    },
+    async (params) => {
+      try {
+        const result = await callAE("ae_describe_property_tree", params);
+        return toolSuccess(result);
+      } catch (err) {
+        return toolError(err);
+      }
+    }
+  );
 }

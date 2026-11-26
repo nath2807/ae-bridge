@@ -114,3 +114,21 @@
 - **Blockers**: None.
 
 ---
+
+## Phase 7 - Major Capability Leap
+- **Timestamp**: 2026-11-26T20:44:00+05:30
+- **Summary**:
+  - Implemented `ae_describe_property_tree` in ExtendScript and TypeScript for deep recursive property hierarchy introspection.
+  - Implemented `ae_undo` command in ExtendScript and TypeScript (`app.executeCommand(16)`).
+  - Built JSON Scene Graph module (`server/src/tools/scenegraph.ts` and `cep-panel/jsx/tools/scenegraph.jsx`) with `ae_export_scene_graph` and `ae_apply_scene_graph`.
+  - Added data-driven versioning and MOGRT packaging tools: `ae_render_mogrt` and `ae_batch_csv_replace` with robust CSV parsing in `server/src/tools/templates.ts`.
+  - Implemented computer vision quality metrics via sharp in `server/src/tools/vision.ts`: `ae_measure_frame` and `ae_measure_comp` computing mean luminance, RMS contrast, Laplacian variance blur detection, clipping analysis, and temporal stability.
+  - Built kinetic captions and transcription module in `server/src/tools/captions.ts` and `cep-panel/jsx/tools/captions.jsx`: `ae_transcribe_audio` with Whisper CLI detection and zero-dependency SRT/VTT parsing, and `ae_kinetic_captions` generating word-pop, bounce, and typewriter kinetic typography.
+  - Upgraded Blender 3D engine: added `denoiser` option, procedural `turntable` camera animation, schema pre-validator `validateSceneSpec` and `blender_validate_spec` tool, and 3D asset import pipeline `ae_import_3d_asset`.
+  - Added 3 new tool modules (`scenegraph`, `vision`, `captions`) to `TOOL_MODULES` in `server/src/tools/registry.ts`, raising total documented tools to 185 across 41 categories.
+  - Added test suite `server/test/phase7-capabilities.test.ts`.
+  - Logged decisions DEC-017 through DEC-020 in `docs/DECISIONS.md`.
+- **Test Results**: 18 vitest files (88 tests) + 6 Python tests passing.
+- **Blockers**: None.
+
+---

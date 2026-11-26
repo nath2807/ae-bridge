@@ -94,6 +94,12 @@ export const cameraSpecSchema = z.object({
     focus_object: z.string().optional().describe("Target object ID to maintain sharp focus on")
   }).optional().describe("Physical optical depth of field parameters"),
   move: cameraMoveEnum.default("pushIn").describe("Procedural camera trajectory move preset"),
+  turntable: z.object({
+    radius: z.number().positive().default(5.0).describe("Orbit distance in meters"),
+    height: z.number().default(2.0).describe("Camera height in meters"),
+    revolutions: z.number().default(1.0).describe("Number of full 360-degree rotations"),
+    target: z.array(z.number()).min(3).max(3).default([0, 0, 0]).describe("World-space focus target point [x, y, z]")
+  }).optional().describe("Turntable camera orbit parameters"),
   curve: z.string().default("smooth").describe("Named motion curve for camera move easing"),
   keyframes: z.array(z.any()).optional().describe("Custom keyframe overrides if not using procedural move")
 });
@@ -121,6 +127,7 @@ export const sceneSpecSchema = z.object({
   resolution: z.array(z.number().int().positive()).min(2).max(2).default([1920, 1080]).describe("Render output frame dimensions [width, height] in pixels"),
   engine: z.enum(["cycles", "eevee"]).default("eevee").describe("Render engine: 'eevee' (Next) for ultra-fast GPU graphics, 'cycles' for path-traced raytracing"),
   quality: z.enum(["preview", "final"]).default("final").describe("Quality tier: 'preview' (fast samples) or 'final' (deep samples & OIDN denoise)"),
+  denoiser: z.enum(["optix", "openimagedenoise", "none"]).optional().describe("Denoising backend for Cycles/EEVEE raytracing"),
   world: z.object({
     hdri: z.string().optional().describe("Absolute file path to HDRI environment map (.hdr or .exr)"),
     color: colorSchema.optional().describe("Ambient world background color"),
@@ -138,3 +145,14 @@ export const sceneSpecSchema = z.object({
 export type SceneSpec = z.infer<typeof sceneSpecSchema>;
 export type SceneObject = z.infer<typeof sceneObjectSchema>;
 export type MaterialSpec = z.infer<typeof materialSpecSchema>;
+
+export function validateSceneSpec(spec: unknown): { valid: boolean; errors?: string[]; spec?: SceneSpec } {
+  const result = sceneSpecSchema.safeParse(spec);
+  if (result.success) {
+    return { valid: true, spec: result.data };
+  }
+  return {
+    valid: false,
+    errors: result.error.errors.map((e) => `${e.path.join(".")}: ${e.message}`)
+  };
+}

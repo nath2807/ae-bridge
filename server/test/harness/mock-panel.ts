@@ -298,6 +298,103 @@ export class MockAEPanel {
           checkedTimes: [0, 2, 4, 6, 8]
         };
 
+      case "undo":
+      case "ae_undo":
+        return {
+          success: true,
+          stepsUndone: params.steps || 1
+        };
+
+      case "describePropertyTree":
+      case "ae_describe_property_tree":
+        return {
+          layerName: params.layerRef?.layerName || "Mock Layer",
+          layerIndex: 1,
+          tree: {
+            name: "Transform",
+            matchName: "ADBE Transform Group",
+            propertyType: "NAMED_GROUP",
+            depth: 0,
+            children: [
+              {
+                name: "Position",
+                matchName: "ADBE Position",
+                propertyType: "PROPERTY",
+                depth: 1,
+                value: [960, 540, 0],
+                numKeys: 2,
+                hasExpression: false
+              }
+            ]
+          }
+        };
+
+      case "exportSceneGraph":
+      case "ae_export_scene_graph":
+        return {
+          version: "1.3",
+          comp: {
+            id: 1,
+            name: "Mock Comp",
+            width: 1920,
+            height: 1080,
+            duration: 10,
+            frameRate: 30,
+            pixelAspect: 1,
+            bgColor: [0, 0, 0],
+            numLayers: 2
+          },
+          layers: [
+            {
+              index: 1,
+              name: "Text Layer",
+              type: "text",
+              inPoint: 0,
+              outPoint: 10,
+              transform: { position: [960, 540, 0] },
+              text: { content: "Sample Text", fontSize: 80 }
+            }
+          ]
+        };
+
+      case "applySceneGraph":
+      case "ae_apply_scene_graph":
+        return {
+          compId: 42,
+          compName: params.scene?.comp?.name || "Reconstructed",
+          numLayers: params.scene?.layers?.length || 1,
+          success: true
+        };
+
+      case "kineticCaptions":
+      case "ae_kinetic_captions":
+        return {
+          compName: "Mock Comp",
+          captionCount: params.captions?.length || 1,
+          style: params.style || "word_pop",
+          createdLayers: [1, 2]
+        };
+
+      case "exportMogrt":
+      case "ae_export_mogrt":
+        return {
+          exported: true,
+          path: params.outputPath || "mock.mogrt"
+        };
+
+      case "generateVersions":
+      case "ae_generate_versions":
+        return {
+          folder: "Versions",
+          folderId: 99,
+          totalGenerated: params.rows?.length || 1,
+          versions: (params.rows || [{ suffix: "v1" }]).map((r: any, idx: number) => ({
+            compId: 100 + idx,
+            compName: `Comp_${r.suffix}`,
+            suffix: r.suffix
+          }))
+        };
+
       default:
         // Generic fallback returning mock success for all other ae_* tools
         return {

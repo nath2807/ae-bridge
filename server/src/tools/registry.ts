@@ -40,6 +40,9 @@ import { registerFinishingTools } from "./finishing.js";
 import { registerReferenceTools } from "./reference.js";
 import { registerBlenderTools } from "./blender.js";
 import { registerBlenderAETools } from "./blenderAE.js";
+import { registerSceneGraphTools } from "./scenegraph.js";
+import { registerVisionTools } from "./vision.js";
+import { registerCaptionTools } from "./captions.js";
 
 export interface ToolModule {
   name: string;
@@ -99,7 +102,10 @@ export const TOOL_MODULES: ToolModule[] = [
   { name: "Finishing Pass & Compositing", tag: "finishing", register: registerFinishingTools },
   { name: "Reference Matching & Palette", tag: "reference", register: registerReferenceTools },
   { name: "Blender 3D Photoreal Engine", tag: "blender", register: registerBlenderTools },
-  { name: "Blender AE Compositing & Sync", tag: "blender_ae", register: registerBlenderAETools }
+  { name: "Blender AE Compositing & Sync", tag: "blender_ae", register: registerBlenderAETools },
+  { name: "Scene Graph Architecture", tag: "scenegraph", register: registerSceneGraphTools },
+  { name: "Computer Vision & Quality", tag: "vision", register: registerVisionTools },
+  { name: "Audio Transcription & Captions", tag: "captions", register: registerCaptionTools }
 ];
 
 let cachedCatalog: ToolCatalogEntry[] | null = null;

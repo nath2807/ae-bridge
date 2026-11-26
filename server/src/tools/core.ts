@@ -152,4 +152,26 @@ export function registerCoreTools(server: McpServer): void {
       };
     }
   );
+
+  // 8. ae_undo
+  server.tool(
+    "ae_undo",
+    "Undo the last action (or multiple actions) in After Effects.",
+    {
+      steps: z.number().int().min(1).max(20).optional().default(1).describe("Number of undo steps to execute (default 1)")
+    },
+    async ({ steps }) => {
+      try {
+        const result = await callAE("undo", { steps });
+        return {
+          content: [{ type: "text", text: formatResult(result) }]
+        };
+      } catch (err) {
+        return {
+          content: [{ type: "text", text: (err as Error).message }],
+          isError: true
+        };
+      }
+    }
+  );
 }

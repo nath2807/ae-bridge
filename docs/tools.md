@@ -1,13 +1,13 @@
 # AE Bridge Tools Reference
 
-Auto-generated reference documentation for all **173 MCP tools** provided by the AE Bridge server.
+Auto-generated reference documentation for all **185 MCP tools** provided by the AE Bridge server.
 
 ## Table of Contents
 
-- [Core & Health](#core-health) (7 tools)
+- [Core & Health](#core-health) (8 tools)
 - [Compositions](#compositions) (8 tools)
 - [Layers & Transform](#layers-transform) (12 tools)
-- [Animation & Keyframes](#animation-keyframes) (7 tools)
+- [Animation & Keyframes](#animation-keyframes) (8 tools)
 - [Effects](#effects) (5 tools)
 - [Titles & Lower Thirds](#titles-lower-thirds) (4 tools)
 - [Footage & Media](#footage-media) (6 tools)
@@ -30,7 +30,7 @@ Auto-generated reference documentation for all **173 MCP tools** provided by the
 - [Project & Checkpoints](#project-checkpoints) (10 tools)
 - [Rendering & Export](#rendering-export) (10 tools)
 - [Social Variants & Reframe](#social-variants-reframe) (2 tools)
-- [Essential Graphics & Templates](#essential-graphics-templates) (4 tools)
+- [Essential Graphics & Templates](#essential-graphics-templates) (6 tools)
 - [Asset & Beat Analysis](#asset-beat-analysis) (3 tools)
 - [Brand Identity Kit](#brand-identity-kit) (2 tools)
 - [Storyboard & Director](#storyboard-director) (3 tools)
@@ -40,8 +40,11 @@ Auto-generated reference documentation for all **173 MCP tools** provided by the
 - [Design Styles & Aesthetics](#design-styles-aesthetics) (3 tools)
 - [Finishing Pass & Compositing](#finishing-pass-compositing) (2 tools)
 - [Reference Matching & Palette](#reference-matching-palette) (3 tools)
-- [Blender 3D Photoreal Engine](#blender-3d-photoreal-engine) (13 tools)
-- [Blender AE Compositing & Sync](#blender-ae-compositing-sync) (2 tools)
+- [Blender 3D Photoreal Engine](#blender-3d-photoreal-engine) (14 tools)
+- [Blender AE Compositing & Sync](#blender-ae-compositing-sync) (3 tools)
+- [Scene Graph Architecture](#scene-graph-architecture) (2 tools)
+- [Computer Vision & Quality](#computer-vision-quality) (2 tools)
+- [Audio Transcription & Captions](#audio-transcription-captions) (2 tools)
 
 ---
 
@@ -97,6 +100,14 @@ Search all available AE Bridge tools by keyword, tag, or category to discover to
 List active and available tool profiles ('minimal', 'standard', 'blender', 'full') with their descriptions, active status, and tool counts. Profiles reduce token overhead by exposing only the tools relevant to the current task.
 
 *No parameters required.*
+
+### `ae_undo`
+
+Undo the last action (or multiple actions) in After Effects.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `steps` | `integer` | No | Number of undo steps to execute (default 1) | `1` |
 
 ---
 
@@ -417,6 +428,17 @@ Apply quick professional motion presets ('fadeIn', 'fadeOut', 'slideInLeft', 'sl
 | `startTime` | `number` | No | Animation start time in seconds (default 0) | `0` |
 | `duration` | `number` | No | Animation duration in seconds (default 0.6) | `0.6` |
 | `options` | `object` | No | Optional preset parameters (e.g. { distance: 1920, rotations: 2, blurriness: 80 }) | - |
+
+### `ae_describe_property_tree`
+
+Deeply inspect and introspect a layer's entire property hierarchy: match names, types, current values, expressions, keyframe counts, modification states, and property paths.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `compRef` | `object` | No | Reference to a composition (by ID or name). If omitted, the active composition is used. | - |
+| `layerRef` | `object` | **Yes** | Target layer to inspect | - |
+| `path` | `string | array` | No | Optional property or group path to start from (e.g. ['Transform'] or ['Effects']) | - |
+| `maxDepth` | `integer` | No | Maximum recursion depth (default 5) | `5` |
 
 ---
 
@@ -1592,6 +1614,26 @@ Data-driven versioning: duplicate a master composition per row, apply text and c
 | `rows` | `array` | **Yes** | Data rows to generate versions for | - |
 | `render` | `object` | No | Optional rendering configuration to queue all versions | - |
 
+### `ae_render_mogrt`
+
+Package and export a composition containing Essential Graphics controls into a Motion Graphics Template (.mogrt) file for Premiere Pro.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `compRef` | `object` | No | Reference to a composition (by ID or name). If omitted, the active composition is used. | - |
+| `outputPath` | `string` | No | Destination .mogrt file path. Defaults to <Videos>/ae-bridge-renders/<compName>.mogrt | - |
+
+### `ae_batch_csv_replace`
+
+Data-driven video generation: parse a CSV table (string or file path), duplicate a master composition per row with text and color overrides, and optionally queue all variants for rendering.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `compRef` | `object` | No | Reference to a composition (by ID or name). If omitted, the active composition is used. | - |
+| `csvData` | `string` | **Yes** | Raw CSV content or local .csv file path containing data columns | - |
+| `suffixColumn` | `string` | No | Column name to use for comp name suffixing (default 'id') | `id` |
+| `render` | `object` | No | Optional rendering configuration to queue all versions | - |
+
 ---
 
 ## Asset & Beat Analysis
@@ -1950,6 +1992,14 @@ Download CC0 HDRIs from the public Poly Haven API into ~/.ae-bridge/hdri (or lis
 |---|---|---|---|---|
 | `name` | `string` | No | Poly Haven HDRI identifier (e.g. 'studio_small_08', 'aerodynamics_workshop', 'modern_buildings_2'). If omitted, lists available local and popular HDRIs | - |
 
+### `blender_validate_spec`
+
+Pre-validate a Blender SceneSpec JSON payload against the full schema before launching a render job, checking object definitions, materials, lighting, and camera paths.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `spec` | `object` | **Yes** | SceneSpec dictionary to validate | - |
+
 ---
 
 ## Blender AE Compositing & Sync
@@ -1980,6 +2030,90 @@ Apply cinematic atmospheric depth effects (depth of field optical lens blur, dis
 | `effects` | `array` | No | Depth effects to configure | `dof` |
 | `dofRadius` | `number` | No | Maximum optical blur radius for Camera Lens Blur | `15` |
 | `fogColor` | `array | string` | No | Atmospheric fog tint color | - |
+
+### `ae_import_3d_asset`
+
+Import a 3D model asset (glTF/GLB, USD/USDA/USDC/USDZ, FBX, or OBJ) into After Effects or the Blender 3D pipeline with material extraction, lighting, and camera sync.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `filePath` | `string` | **Yes** | Path to local 3D model asset (.glb, .gltf, .usd, .usdz, .fbx, .obj) | - |
+| `compRef` | `object` | No | Reference to a composition (by ID or name). If omitted, the active composition is used. | - |
+| `renderMode` | `"ae_native" | "blender"` | No | Import pipeline: 'ae_native' for direct After Effects 3D layer (AE 2024+ for glTF/OBJ) or 'blender' for photoreal PBR rendered sequence with depth pass | `blender` |
+| `materialPreset` | `string` | No | Optional PBR material override for Blender pipeline | - |
+| `cameraMove` | `string` | No | Camera move for Blender pipeline ('turntable', 'pushIn', 'orbit') | `turntable` |
+| `frames` | `integer` | No | Number of frames to render if using Blender pipeline | `60` |
+
+---
+
+## Scene Graph Architecture
+
+### `ae_export_scene_graph`
+
+Export an entire After Effects composition into a clean, portable JSON scene graph (comp settings, layer stack, types, transforms, text styles, solids, effects, and parenting relationships).
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `compRef` | `object` | No | Reference to a composition (by ID or name). If omitted, the active composition is used. | - |
+
+### `ae_apply_scene_graph`
+
+Construct or reconstruct a composition from a portable JSON scene graph schema inside a single undo group.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `scene` | `object` | **Yes** | Scene graph payload describing the composition and its layers | - |
+
+---
+
+## Computer Vision & Quality
+
+### `ae_measure_frame`
+
+Perform optical computer vision analysis on a rendered composition frame: mean brightness, RMS contrast, perceptual blur detection, clipping percentages, and dominant colors.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `compRef` | `object` | No | Reference to a composition (by ID or name). If omitted, the active composition is used. | - |
+| `time` | `number` | No | Time in seconds to measure. If omitted, uses current comp playhead time | - |
+| `imagePath` | `string` | No | Optional path to an existing image file on disk to analyze directly | - |
+
+### `ae_measure_comp`
+
+Evaluate temporal optical stability and dynamic range across multiple sample times of a composition, flagging flicker, clipped frames, and contrast drops.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `compRef` | `object` | No | Reference to a composition (by ID or name). If omitted, the active composition is used. | - |
+| `sampleCount` | `integer` | No | Number of sample points across composition duration (default 5) | `5` |
+
+---
+
+## Audio Transcription & Captions
+
+### `ae_transcribe_audio`
+
+Extract speech timestamps from an audio/video file or format raw transcript text/SRT into structured kinetic caption segments.
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `filePath` | `string` | No | Path to local audio or video media file to transcribe | - |
+| `rawTranscript` | `string` | No | Pre-existing raw transcript, SRT, or VTT string to parse without Whisper | - |
+| `language` | `string` | No | Audio language code (default 'en') | `en` |
+
+### `ae_kinetic_captions`
+
+Generate animated word-by-word or phrase-by-phrase kinetic typography captions in After Effects with customizable styling (word_pop, bounce, typewriter).
+
+| Parameter | Type | Required | Description | Default |
+|---|---|---|---|---|
+| `compRef` | `object` | No | Reference to a composition (by ID or name). If omitted, the active composition is used. | - |
+| `captions` | `array | string` | **Yes** | Caption segments or SRT string to animate | - |
+| `style` | `"word_pop" | "bounce" | "typewriter"` | No | Kinetic animation style | `word_pop` |
+| `fontSize` | `number` | No | Caption font size in points (default 72) | `72` |
+| `fillColor` | `array | string` | No | Base text fill color (defaults to white) | - |
+| `highlightColor` | `any` | No | Highlighted word color (defaults to yellow/gold) | - |
+| `position` | `array` | No | 2D position [x, y] in comp coordinates (defaults to bottom center) | - |
 
 ---
 

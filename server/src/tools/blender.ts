@@ -18,6 +18,7 @@ import {
 } from "../blender/jobs.js";
 import {
   sceneSpecSchema,
+  validateSceneSpec,
   materialPresetEnum,
   cameraMoveEnum,
   physicsPresetEnum,
@@ -684,6 +685,19 @@ export function registerBlenderTools(server: McpServer): void {
       } catch (err) {
         return toolError(err);
       }
+    }
+  );
+
+  // 14. blender_validate_spec
+  server.tool(
+    "blender_validate_spec",
+    "Pre-validate a Blender SceneSpec JSON payload against the full schema before launching a render job, checking object definitions, materials, lighting, and camera paths.",
+    {
+      spec: z.record(z.any()).describe("SceneSpec dictionary to validate")
+    },
+    async ({ spec }) => {
+      const result = validateSceneSpec(spec);
+      return toolSuccess(result);
     }
   );
 }

@@ -169,6 +169,47 @@ This document records architectural decisions, evaluated alternatives, and ratio
   - *Globally setting `shell: true`*: Insecure argument concatenation and Node.js deprecation warnings.
 - **Reason**: Secure, warning-free process execution across Windows, macOS, and Linux.
 
+---
+
+## DEC-017: JSON Scene Graph Interchange Format
+- **Date**: 2026-11-26
+- **Context**: Passing low-level ExtendScript scripts or dozens of individual layer mutation commands to rebuild comps creates fragility and high latency.
+- **Decision**: Implement a canonical JSON Scene Graph schema (`ae_export_scene_graph`, `ae_apply_scene_graph`) capturing composition dimensions, layer hierarchy, transforms, text properties, solid colors, effects, and parenting.
+- **Alternatives Considered**:
+  - *Exporting raw JSX scripts*: Risky, version-dependent, and prone to eval errors.
+- **Reason**: Declarative, verifiable, and portable composition interchange for AI agents.
+
+---
+
+## DEC-018: Optical Computer Vision Analysis via Sharp
+- **Date**: 2026-11-26
+- **Context**: Aesthetic feedback currently requires human review. AI models need quantitative vision metrics to judge render quality, contrast, and focus.
+- **Decision**: Implement `ae_measure_frame` and `ae_measure_comp` using `sharp` to extract mean luminance ($Y = 0.299R + 0.587G + 0.114B$), RMS contrast, Laplacian variance blur detection, clipping (black/white percentage), and temporal luminance stability across sample points.
+- **Alternatives Considered**:
+  - *Pixel manipulation in ExtendScript*: Extremely slow inside After Effects' ES3 runtime.
+- **Reason**: High-speed, C++-backed image processing in Node.js without blocking After Effects.
+
+---
+
+## DEC-019: Kinetic Typography and Zero-Dependency Transcription Fallback
+- **Date**: 2026-11-26
+- **Context**: Kinetic captions are one of the most requested short-form video features. External speech-to-text tools like Whisper may not be installed on every user machine.
+- **Decision**: Implement `ae_transcribe_audio` with feature detection for Whisper CLI, alongside zero-dependency parsing for raw SRT, VTT, and JSON timestamps. Provide `ae_kinetic_captions` generating word-pop, bounce, and typewriter kinetic typography in After Effects.
+- **Alternatives Considered**:
+  - *Hard dependency on Whisper*: Fails on systems without Python or Whisper installed.
+- **Reason**: Graceful degradation supporting automated transcription when available and direct subtitle input everywhere.
+
+---
+
+## DEC-020: Blender Engine Enhancements (Denoiser, Turntable, and Spec Validation)
+- **Date**: 2026-11-26
+- **Context**: 3D product visualization requires automated 360-degree turntable orbits, denoising configuration, and fast schema validation before starting long renders.
+- **Decision**: Add `denoiser` option to `sceneSpecSchema`, procedural `turntable` camera trajectory generator, and `blender_validate_spec` tool for instant pre-flight validation.
+- **Alternatives Considered**:
+  - *Manual keyframe generation for turntables*: Complex and error-prone in client prompts.
+- **Reason**: Simplifies 3D product showcase workflows to a single declarative parameter.
+
+
 
 
 
