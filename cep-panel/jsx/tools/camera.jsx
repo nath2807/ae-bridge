@@ -263,7 +263,7 @@
                 throw new Error("Camera '" + cam.name + "' is a one-node camera and has no Point of Interest.");
             }
 
-            poiProp.expression = 'thisComp.layer("' + target.name + '").transform.position';
+            poiProp.expression = "thisComp.layer(" + quoteExpressionString(target.name) + ").transform.position";
 
             return {
                 cameraName: cam.name,
@@ -300,7 +300,7 @@
                 var focusProp = camOpts.property("ADBE Camera Focus Distance");
                 if (focusProp) {
                     try {
-                        focusProp.expression = 'length(transform.position, thisComp.layer("' + target.name + '").transform.position)';
+                        focusProp.expression = "length(transform.position, thisComp.layer(" + quoteExpressionString(target.name) + ").transform.position)";
                         result.focusLayer = target.name;
                         result.focusExpression = focusProp.expression;
                     } catch (eFocus) {}

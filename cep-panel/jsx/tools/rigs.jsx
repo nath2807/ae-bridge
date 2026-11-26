@@ -194,9 +194,9 @@
             var normSrcPath = normalizePropertyPath(params.sourcePath);
             var propExprSegments = [];
             for (var i = 0; i < normSrcPath.length; i++) {
-                propExprSegments.push('("' + normSrcPath[i] + '")');
+                propExprSegments.push("(" + quoteExpressionString(normSrcPath[i]) + ")");
             }
-            var srcRefStr = 'thisComp.layer("' + srcLayer.name + '")' + propExprSegments.join("");
+            var srcRefStr = "thisComp.layer(" + quoteExpressionString(srcLayer.name) + ")" + propExprSegments.join("");
 
             var expr = "";
             if (multiplier === 1.0 && offset === 0.0) {
@@ -294,6 +294,9 @@
             // 3. Loop Rig
             else if (rig === "loop") {
                 var mode = options.mode ? String(options.mode).toLowerCase() : "cycle";
+                if (mode !== "cycle" && mode !== "pingpong" && mode !== "offset") {
+                    throw new Error("Invalid loop mode. Use 'cycle', 'pingpong', or 'offset'.");
+                }
                 prop.expression = 'loopOut("' + mode + '");';
             }
 
@@ -434,7 +437,7 @@
                     '    parts[0] = parts[0].replace(/\\B(?=(\\d{3})+(?!\\d))/g, ",");',
                     '    formatted = parts.join(".");',
                     '}',
-                    '"' + pfx + '" + formatted + "' + sfx + '";'
+                    quoteExpressionString(pfx) + ' + formatted + ' + quoteExpressionString(sfx) + ';'
                 ].join("\n");
             }
 
@@ -464,7 +467,7 @@
                 prop.expression = [
                     'var lagFrames = effect("Lag Frames")("Slider");',
                     'var lagTime = lagFrames * thisComp.frameDuration;',
-                    'thisComp.layer("' + leaderName + '").transform.position.valueAtTime(time - lagTime);'
+                    'thisComp.layer(' + quoteExpressionString(leaderName) + ').transform.position.valueAtTime(time - lagTime);'
                 ].join("\n");
             }
 
@@ -507,7 +510,7 @@
                 }
 
                 prop.expression = [
-                    'var tgt = thisComp.layer("' + targetName + '");',
+                    'var tgt = thisComp.layer(' + quoteExpressionString(targetName) + ');',
                     'var diff = tgt.toComp(tgt.anchorPoint) - toComp(anchorPoint);',
                     'radiansToDegrees(Math.atan2(diff[1], diff[0]));'
                 ].join("\n");
