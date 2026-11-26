@@ -101,7 +101,7 @@ To manually specify or override the Blender binary:
 
 ### 1. Clone & Install Dependencies
 ```bash
-git clone https://github.com/<your-org>/ae-bridge.git
+git clone https://github.com/nath2807/ae-bridge.git
 cd ae-bridge
 npm --prefix server install
 npm --prefix server run build
@@ -246,7 +246,9 @@ Add the AE Bridge server to your client's configuration file:
 
 ## Roadmap
 
-- [x] v1.0.0 Core Bridge, 3D Scenes, Vision Pipeline, Director Layer, Recipes, Social Multi-Pack
+- [x] v1.0.0 Core bridge, 3D scenes, vision pipeline, director layer, recipes, and social multi-pack
+- [x] v1.1.0 High-end design engine: style packs, motion language, finishing passes, reference matching, and Art Director review
+- [x] v1.2.0 Blender 3D bridge: photoreal rendering, procedural assets, physics simulations, camera tracking, and depth compositing
 - [ ] Direct mogrt parameter binding & spreadsheet autofill
 - [ ] Real-time audio waveform peak visualizer
 - [ ] GPU-accelerated frame streaming for conversational live review
